@@ -2,3 +2,4 @@ name = "CSC"
 
 [deps]
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
