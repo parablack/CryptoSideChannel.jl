@@ -1,9 +1,8 @@
 using CSC, Test
-import CSC.HammingWeightLog
 using StaticArrays
 
 u(i) = convert(UInt64, i)
-h(i) = HammingWeightLog(u(i))
+h(i) = CSC.ForgetfulHammingLog(u(i))
 
 @test CSC.SPECK.encrypt(SVector(u(0),u(0)), SVector(u(0),u(0)), 32) == (u(7375773579082960246), u(2346049177382750829))
 @test CSC.SPECK.encrypt(SVector(u(0),u(1)), SVector(u(0),u(0)), 32) == (u(11942982297637201430), u(4129396787835963234))

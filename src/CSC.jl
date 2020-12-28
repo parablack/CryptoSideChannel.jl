@@ -10,5 +10,6 @@ module CSC
     export AES
     export SPECK
     export HammingWeightLog
+    export ForgetfulHammingLog
 
 end # module

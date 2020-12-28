@@ -1,4 +1,4 @@
-using CSC, Test
+using CSC, Test, StaticArrays
 
 function test_en_decrypt_uint8(pt, ct, k)
     @test CSC.AES.AES_encrypt_hex(pt, k) == ct
@@ -6,9 +6,9 @@ function test_en_decrypt_uint8(pt, ct, k)
 end
 
 function test_en_decrypt_log(pt, ct, k)
-    kl = map(CSC.HammingWeightLog, hex2bytes(k))
-    ptl = map(CSC.HammingWeightLog, hex2bytes(pt))
-    ctl = map(CSC.HammingWeightLog, hex2bytes(ct))
+    kl = map(CSC.ForgetfulHammingLog, hex2bytes(k))
+    ptl = map(CSC.ForgetfulHammingLog, MVector{16}(hex2bytes(pt)))
+    ctl = map(CSC.ForgetfulHammingLog, MVector{16}(hex2bytes(ct)))
 
     @test CSC.AES.AES_encrypt(ptl, kl) == ctl
     @test CSC.AES.AES_decrypt(ctl, kl) == ptl

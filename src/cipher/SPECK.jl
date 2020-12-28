@@ -24,8 +24,6 @@ module SPECK
         (x, y) = R(x, y, b)
 
         for i::UInt64 = 0:(rounds-2)
-            println(b)
-            #println("y=$y x=$x")
             (a,b) = R(a, b, i)
             (x,y) = R(x, y, b)
         end
