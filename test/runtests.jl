@@ -6,3 +6,7 @@ end
 @safetestset "SPECK unit tests" begin
 include("SPECK-test.jl")
 end
+
+@safetestset "DPA unit tests" begin
+include("DPA-test.jl")
+end
