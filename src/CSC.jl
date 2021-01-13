@@ -13,9 +13,7 @@ module CSC
 
     export AES
     export SPECK
-    export HammingWeightLog
-    export ForgetfulHammingLog
+    export Logging
     export DPA
-
 
 end # module

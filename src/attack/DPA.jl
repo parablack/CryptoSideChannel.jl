@@ -2,14 +2,15 @@
 module DPA
     using CSC.AES
     using CSC
+    using CSC.Logging
     using StaticArrays
     using Plots
     using Profile
 
     function sample_power_trace(key, input)
         coll = []
-        key = map(x -> HammingWeightLog(x, coll), key)
-        input = map(x -> HammingWeightLog(x, coll), input)
+        key = map(x -> Logging.HammingWeightLog(x, coll), key)
+        input = map(x -> Logging.HammingWeightLog(x, coll), input)
         AES.AES_encrypt(input, key)
         coll
     end
@@ -19,13 +20,25 @@ module DPA
     end
 
     function generate_difference_trace(traces, select, guess, position)
-        traces_zero = map(y -> y[2], filter(x -> select(x, guess, position), traces))
-        traces_one = map(y -> y[2], filter(x -> !select(x, guess, position), traces))
-        traces_zero = hcat(traces_zero...)
-        traces_one = hcat(traces_one...)
-        avg_one = [sum(traces_one[b,:])/size(traces_one, 2) for b in 1:size(traces_one, 1)]
-        avg_zero = [sum(traces_zero[b,:])/size(traces_zero, 2) for b in 1:size(traces_zero, 1)]
-        diff = abs.(avg_one .- avg_zero)
+        traces_zero = zeros(size(traces[1][2]))
+        num_traces_zero = 0
+        traces_one = zeros(size(traces[1][2]))
+        num_traces_one = 0
+        for trace = traces
+            if select(trace, guess, position)
+                traces_one .+= trace[2]
+                num_traces_one += 1
+            else
+                traces_zero .+= trace[2]
+                num_traces_zero += 1
+            end
+        end
+        @assert num_traces_one > 0 && num_traces_zero > 0
+
+        traces_one ./= convert(Float64, num_traces_one)
+        traces_zero ./= convert(Float64, num_traces_zero)
+
+        diff = abs.(traces_one .- traces_zero)
         diff
     end
 
@@ -38,7 +51,7 @@ module DPA
         for idx = 1:16
             keyGuesses = []
             for k::UInt8 = 0x0:0xFF
-            diff = generate_difference_trace(traces, select, k, idx)
+                diff = generate_difference_trace(traces, select, k, idx)
                 corr = maximum(diff)
                 push!(keyGuesses, (corr, k))
                 # display(plot(diff))
@@ -58,5 +71,14 @@ module DPA
         return completeKey
 
     end
+
+  #  test_key = (hex2bytes("41112233445566778899aabbccddeeff"))
+  #  sample_function(x) = sample_power_trace(test_key, x)
+  #  traces = [MVector{16}(rand(UInt8, 16)) for _=1:2^16]
+  #  traces = map(x -> (x, sample_function(x)), traces)
+  #  diff = @profile generate_difference_trace(traces, select, 1, 1)
+    #print(diff)
+  #  recovered_key = DPA_AES_analyze(sample_function)
+
 end
 

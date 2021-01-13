@@ -93,7 +93,7 @@ module AES
 
     # Takes an AES key as array of UInt8-like types.
     # Returns an array of expanded keys, each expanded key is a Array{T,16}
-    function key_expand(k::Array{T,1}) where T
+    function key_expand(k::Vector{T}) where T
         @assert keysizewords(k) == 4 || keysizewords(k) == 6 || keysizewords(k) == 8
         Nk = keysizewords(k)
         Nr = roundsbykey(k)

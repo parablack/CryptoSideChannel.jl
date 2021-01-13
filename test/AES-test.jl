@@ -1,4 +1,5 @@
 using CSC, Test, StaticArrays
+using CSC.Logging
 
 function test_en_decrypt_uint8(pt, ct, k)
     @test CSC.AES.AES_encrypt_hex(pt, k) == ct
@@ -6,9 +7,9 @@ function test_en_decrypt_uint8(pt, ct, k)
 end
 
 function test_en_decrypt_log(pt, ct, k)
-    kl = map(CSC.ForgetfulHammingLog, hex2bytes(k))
-    ptl = map(CSC.ForgetfulHammingLog, MVector{16}(hex2bytes(pt)))
-    ctl = map(CSC.ForgetfulHammingLog, MVector{16}(hex2bytes(ct)))
+    kl = map(Logging.ForgetfulHammingLog, hex2bytes(k))
+    ptl = map(Logging.ForgetfulHammingLog, MVector{16}(hex2bytes(pt)))
+    ctl = map(Logging.ForgetfulHammingLog, MVector{16}(hex2bytes(ct)))
 
     @test CSC.AES.AES_encrypt(ptl, kl) == ctl
     @test CSC.AES.AES_decrypt(ctl, kl) == ptl

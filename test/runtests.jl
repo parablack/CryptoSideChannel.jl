@@ -1,5 +1,9 @@
 using SafeTestsets, Test
 
+@safetestset "Generic Log unit tests" begin
+include("GenericLog-test.jl")
+end
+
 @safetestset "AES unit tests" begin
 include("AES-test.jl")
 end
