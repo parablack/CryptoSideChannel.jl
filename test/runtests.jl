@@ -14,3 +14,7 @@ end
 @safetestset "DPA unit tests" begin
 include("DPA-test.jl")
 end
+
+@safetestset "CPA unit tests" begin
+include("CPA-test.jl")
+end

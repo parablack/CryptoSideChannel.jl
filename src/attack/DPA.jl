@@ -8,9 +8,10 @@ module DPA
     using Profile
 
     function sample_power_trace(key, input)
-        coll = []
-        key = map(x -> Logging.HammingWeightLog(x, coll), key)
-        input = map(x -> Logging.HammingWeightLog(x, coll), input)
+        global coll = []
+        closure = () -> coll
+        key = map(x -> Logging.HammingWeightLog(x, closure), key)
+        input = map(x -> Logging.HammingWeightLog(x, closure), input)
         AES.AES_encrypt(input, key)
         coll
     end

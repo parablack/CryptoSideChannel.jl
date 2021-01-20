@@ -10,10 +10,12 @@ module CSC
 
 
     include("attack/DPA.jl")
+    include("attack/CPA.jl")
 
     export AES
     export SPECK
     export Logging
     export DPA
+    export CPA
 
 end # module
