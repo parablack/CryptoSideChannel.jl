@@ -58,7 +58,6 @@ module Logging
                 result
             end
         end)
-
     end
 
     for type = (:AbstractArray, :Tuple)
@@ -80,4 +79,7 @@ module Logging
     function Base.show(io::IO, a::GenericLog)
         print(io, "Log{$(extractValue(a))}")
     end
+
+    Base.rand(::MersenneTwister, ::Type{GenericLog{U,S,T}}) where {U,S,T} = GenericLog{U,S,T}(rand(T))
+
 end

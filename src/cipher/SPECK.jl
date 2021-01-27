@@ -16,10 +16,10 @@ module SPECK
     end
 
     function encrypt(pt::SVector{2,T}, k::SVector{2,T}, rounds::Int)::Tuple{T,T} where T
-        y::T = pt[1]
-        x::T = pt[2]
-        b::T = k[1]
-        a::T = k[2]
+        y::T = pt[2]
+        x::T = pt[1]
+        b::T = k[2]
+        a::T = k[1]
 
         (x, y) = R(x, y, b)
 

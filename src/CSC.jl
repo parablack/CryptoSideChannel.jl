@@ -4,6 +4,7 @@ module CSC
     using StaticArrays
 
     include("types/GenericLog.jl")
+    include("types/Masking.jl")
 
     include("cipher/AES.jl")
     include("cipher/SPECK.jl")
@@ -15,6 +16,7 @@ module CSC
     export AES
     export SPECK
     export Logging
+    export Masking
     export DPA
     export CPA
 

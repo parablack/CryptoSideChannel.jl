@@ -4,6 +4,10 @@ using SafeTestsets, Test
 include("GenericLog-test.jl")
 end
 
+@safetestset "Masking unit tests" begin
+include("Masking-test.jl")
+end
+
 @safetestset "AES unit tests" begin
 include("AES-test.jl")
 end
