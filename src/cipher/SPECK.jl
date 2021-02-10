@@ -1,4 +1,8 @@
+"""
+This module implements the [SPECK cipher](https://csrc.nist.gov/csrc/media/events/lightweight-cryptography-workshop-2015/documents/papers/session1-shors-paper.pdf).
 
+More documentation can be found in the chapter [SPECK](@ref).
+"""
 module SPECK
     using StaticArrays
 

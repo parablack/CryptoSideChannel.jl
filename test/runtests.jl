@@ -8,6 +8,10 @@ end
 include("Masking-test.jl")
 end
 
+@safetestset "Higher-order masking unit tests" begin
+include("HOMasking-test.jl")
+end
+
 @safetestset "AES unit tests" begin
 include("AES-test.jl")
 end

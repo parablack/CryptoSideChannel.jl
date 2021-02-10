@@ -15,9 +15,29 @@ function test_en_decrypt_log(pt, ct, k)
     @test CSC.AES.AES_decrypt(ctl, kl) == ptl
 end
 
+function test_en_decrypt_masked(pt, ct, k)
+    kl = map(Masking.BooleanMask, hex2bytes(k))
+    ptl = map(Masking.BooleanMask, MVector{16}(hex2bytes(pt)))
+    ctl = map(Masking.BooleanMask, MVector{16}(hex2bytes(ct)))
+
+    @test CSC.AES.AES_encrypt(ptl, kl) == ctl
+    @test CSC.AES.AES_decrypt(ctl, kl) == ptl
+end
+
+function test_en_decrypt_ho_masked(pt, ct, k)
+    kl = map(Masking.BooleanMask ∘ Masking.BooleanMask, hex2bytes(k))
+    ptl = map(Masking.BooleanMask ∘ Masking.BooleanMask, MVector{16}(hex2bytes(pt)))
+    ctl = map(Masking.BooleanMask ∘ Masking.BooleanMask, MVector{16}(hex2bytes(ct)))
+
+    @test CSC.AES.AES_encrypt(ptl, kl) == ctl
+    @test CSC.AES.AES_decrypt(ctl, kl) == ptl
+end
+
 function test_en_decrypt(pt, ct, k)
     test_en_decrypt_uint8(pt, ct, k)
     test_en_decrypt_log(pt, ct, k)
+    test_en_decrypt_masked(pt, ct, k)
+    test_en_decrypt_ho_masked(pt, ct, k)
 end
 
 

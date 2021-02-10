@@ -1,4 +1,8 @@
+"""
+    The DPA module implements **D**ifferential **P**ower **A**ttacks against AES, as described by Kocher in [this paper](https://link.springer.com/article/10.1007/s13389-011-0006-y).
 
+    A detailed documentation can be found at [DPA](@ref)
+"""
 module DPA
     using CSC.AES
     using CSC

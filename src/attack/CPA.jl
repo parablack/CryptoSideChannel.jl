@@ -1,4 +1,8 @@
+"""
+    The CPA module implements **C**orrelation **P**ower **A**ttacks against AES.
 
+    More documentation is available at [CPA](@ref)
+"""
 module CPA
     using CSC.AES
     using CSC

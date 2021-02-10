@@ -1,4 +1,10 @@
+"""
+The Logging module allows for recording traces of program executions.
+This module provides the type `GenericLog`, which can be substituted for an integer.
+With this type, arithmetic operations, as well as certain memory operations will be logged to a trace array.
 
+Further documentation is available at [Logging](@ref).
+"""
 module Logging
     using StaticArrays
     using Random

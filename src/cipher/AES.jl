@@ -1,3 +1,8 @@
+"""
+This module provides an implementation of the [AES algorithm](https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf).
+
+Further documentation can be found at [AES](@ref).
+"""
 module AES
 
     using StaticArrays

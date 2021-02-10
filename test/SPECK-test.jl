@@ -7,6 +7,7 @@ u(i) = convert(UInt64, i)
 h(i) = Logging.ForgetfulHammingLog(u(i))
 m(i) = Masking.BooleanMask(u(i))
 mh(i) = Masking.BooleanMask(h(i))
+mm(i) = Masking.BooleanMask(m(i))
 
 
 function test_encrypt(key, pt, ct)
@@ -34,12 +35,20 @@ function test_encrypt(key, pt, ct)
     @test map(Masking.unmask, result) == ct
 
      # Test with masked logging values
-    result = CSC.SPECK.encrypt(
+     result = CSC.SPECK.encrypt(
         SVector(mh(pt[1]),mh(pt[2])),
         SVector(mh(key[1]),mh(key[2])),
         32
         )
     @test map(Logging.extractValue ∘ Masking.unmask, result) == ct
+
+    # Test with masked masked values (= higher order masking)
+    result = CSC.SPECK.encrypt(
+    SVector(mm(pt[1]),mm(pt[2])),
+    SVector(mm(key[1]),mm(key[2])),
+    32
+    )
+    @test map(Masking.unmask ∘ Masking.unmask, result) == ct
 
 end
 
