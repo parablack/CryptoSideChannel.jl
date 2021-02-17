@@ -51,6 +51,12 @@ git-tree-sha1 = "89a0b14325d0f02f9caed7c8ba91181a5d254874"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 version = "0.9.26"
 
+[[CodeTracking]]
+deps = ["InteractiveUtils", "UUIDs"]
+git-tree-sha1 = "8ad457cfeb0bca98732c97958ef81000a543e73e"
+uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
+version = "1.0.5"
+
 [[ColorSchemes]]
 deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random", "StaticArrays"]
 git-tree-sha1 = "3141757b5832ee7a0386db87997ee5a23ff20f4d"
@@ -87,6 +93,12 @@ git-tree-sha1 = "9f02045d934dc030edad45944ea80dbd1f0ebea7"
 uuid = "d38c429a-6771-53c6-b99e-75d170b6e991"
 version = "0.5.7"
 
+[[Cthulhu]]
+deps = ["CodeTracking", "FoldingTrees", "InteractiveUtils", "REPL", "UUIDs", "Unicode"]
+git-tree-sha1 = "5e65dfced9daeae7fee72deab634f8a635442b8a"
+uuid = "f68482b8-f384-11e8-15f7-abe071a5a75f"
+version = "1.6.1"
+
 [[DataAPI]]
 git-tree-sha1 = "ad84f52c0b8f05aa20839484dbaf01690b41ff84"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
@@ -94,9 +106,9 @@ version = "1.4.0"
 
 [[DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "fb0aa371da91c1ff9dc7fbed6122d3e411420b9c"
+git-tree-sha1 = "4437b64df1e0adccc3e5d1adbc3ac741095e4677"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.8"
+version = "0.18.9"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -179,6 +191,12 @@ deps = ["AbstractTrees", "Colors", "FileIO", "FixedPointNumbers", "IndirectArray
 git-tree-sha1 = "99c43a8765095efa6ef76233d44a89e68073bd10"
 uuid = "08572546-2f56-4bcf-ba4e-bab62c3a3f89"
 version = "0.2.5"
+
+[[FoldingTrees]]
+deps = ["AbstractTrees", "REPL"]
+git-tree-sha1 = "e0c730b2d920d29edf8c381695e16c0a28055466"
+uuid = "1eca21be-9b9b-4ed8-839a-6d8ae26b1781"
+version = "1.0.1"
 
 [[Fontconfig_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Expat_jll", "FreeType2_jll", "JLLWrappers", "Libdl", "Libuuid_jll", "Pkg", "Zlib_jll"]

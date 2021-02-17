@@ -28,16 +28,21 @@ module Logging
 
     FullLog(val, stream)  = GenericLog{SingleFunctionLog{identity},stream,typeof(val)}(val)
 
-   # StochasticLog(val, stream, bit)  = GenericLog{SingleFunctionLog{x -> (x >>> bit) & 1}}(val, stream)
 
     # Logs for each result the corresponding vector in the mask. Currently only for 8-bit values (AES)
     #ByteMaskLog(val, stream, mask::SVector{256})  = GenericLog{SingleFunctionLog{x -> x}}(val, stream)
    # ByteMaskLog(val, stream, mask::SVector{256})  = Logging.SingleFunctionLog(val, stream, x -> mask[x+1])
-    randomMask(vector_len, mask_len) = SVector{mask_len}([Random.bitrand(vector_len) for _ in 1:mask_len])
+    randomBitMask(vector_len, mask_len) = SVector{mask_len}([Random.bitrand(vector_len) for _ in 1:mask_len])
+
 
     SingleFunctionLog(val, stream, f)  = GenericLog{SingleFunctionLog{f},stream,typeof(val)}(val)
 
 
+    function StochasticLog(val, stream, template_for_value, noise_closure)
+        intermediate_function = x -> template_for_value(x) + rand(noise_closure())
+        @assert (isbitstype(typeof(intermediate_function)))
+        GenericLog{SingleFunctionLog{intermediate_function}, stream, typeof(val)}(val)
+    end
 
     logValue(a::GenericLog{SingleFunctionLog{F}}) where F = F((extractValue)(a))
 

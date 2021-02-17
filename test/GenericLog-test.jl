@@ -1,4 +1,4 @@
-using Test, StaticArrays, Random, CSC.Logging
+using Test, StaticArrays, Random, CSC.Logging, Cthulhu
 
 trace = []
 
@@ -32,7 +32,7 @@ for i = [0,1,2,3,4,13,255,1337,2^31-1, 2^32, -1, -2, -10, -100, -1337, -2^32]
     end
 end
 
-mask = Logging.randomMask(10, 256)
+mask = Logging.randomBitMask(10, 256)
 
 for i = [0,1,2,3,4,13,128,129,255]
     for j = [0,1,2,3,4,13,128,129,255]

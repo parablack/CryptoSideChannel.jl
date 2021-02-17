@@ -12,6 +12,7 @@ module CSC
 
     include("attack/DPA.jl")
     include("attack/CPA.jl")
+    include("attack/Template.jl")
 
     export AES
     export SPECK
@@ -19,5 +20,6 @@ module CSC
     export Masking
     export DPA
     export CPA
+    export TemplateAttacks
 
 end # module

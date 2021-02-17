@@ -26,3 +26,7 @@ end
 @safetestset "CPA unit tests" begin
 include("CPA-test.jl")
 end
+
+@safetestset "Template attack unit tests" begin
+include("Template-test.jl")
+end

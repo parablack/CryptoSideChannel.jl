@@ -19,6 +19,8 @@ CSC.SPECK
 ## Custom Types
 This package currently provides two noteworthy additional types that mimic integers.
 
+
+
 See the [Integer Types](@ref) page for a more detailed explanation on how to declare custom integer types.
 
 

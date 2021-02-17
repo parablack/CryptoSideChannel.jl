@@ -121,9 +121,7 @@ See also: [`arithmeticToBoolean`](@ref)
     end
     Base.mod(a::Masked{Arithmetic}, b) = Base.mod(arithmeticToBoolean(a), b)
 
-    __expect(x::Union{T, Missing}) where T = convert(T, x)
-    __nomiss(::Type{Union{T, Missing}}) where T = T
-    __nomiss(::Type{T}) where T<:Integer = T
+
     for type = (:(AbstractArray{T}), :(Tuple{Vararg{T}}))
         eval(quote
             function Base.getindex(a::$type, b::Masked{Arithmetic}) where T
@@ -137,8 +135,7 @@ See also: [`arithmeticToBoolean`](@ref)
                 if result === missing
                     throw(BoundsError(a, unmask(b)))
                 end
-                result = __expect(result) # It cannot happen that the result is still missing.
-                return Masked{Arithmetic, typeof(result), __nomiss(T)}(result, mod(b.mask, len))
+                return Masked{Arithmetic, typeof(result), Base.nonmissingtype(T)}(result, mod(b.mask, len))
             end
             Base.getindex(a::$type, b::Masked{Boolean}) where T = Base.getindex(a, booleanToArithmetic(b))
         end)
