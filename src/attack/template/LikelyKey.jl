@@ -12,11 +12,34 @@ end
     Base.iterate(k::LikelyKey, state::Stack{Int})
 
 Iterate over a LikelyKey. Keys that are more likely by the internal sorting of `k` will be iterated first.
+
+Internally, the current status of the iteration is represented by a stack. The contents of this stack are indices of the outer list. An occurence of a list index means that at this position in the key the next likely value should be tried.
+For example, a stack containing the following values:
+`[1, 1, 1, 3, 3, 4, 4, 5]` would be interpreted as follows:
+- For the first key byte, take the fourth most likely (since there are three 1s in our stack, we take the 3+1th most likely element)
+- The second key byte is the most likely (since there is no 2 in our stack)
+- The third key byte is the third most likely (there are two 3s in our stack)
+- Same for the fourth key byte: Take the third most likely
+- For the fifth key byte, take the second most likely (there is one 5 in our stack)
+
+With this system, stacks with less entries will always correspond to more likely lists than stacks containing more entries.
 """
 function Base.iterate(k::LikelyKey)
     return (map(x -> x[1], k.keylist), Stack{Int}())
 end
 
+"""
+    function increase!(s::Stack{Int}, size::Int)
+
+Modifies the stack to the next larger state. All stacks that contain `n` elements will be seen before any stack containing `n + 1` elements. No element in the stack will be greater than `size`.
+
+If results from this method are used with `iterate`, all lists will be iterated.
+
+# Internals
+If `s` has `n` elements, and there is a lexicographically larger stack with `n` elements, return a lexicographically larger stack corresponding to a new list (as descriped in [iterate](@ref)).
+
+Otherwise, returns the lexicographically smallest stack with `n+1` elements.
+"""
 function increase!(s::Stack{Int}, size::Int)
     if isempty(s)
         push!(s, 1)
