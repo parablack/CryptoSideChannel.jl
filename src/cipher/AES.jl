@@ -7,9 +7,6 @@ module AES
 
     using StaticArrays
 
-    #struct AESKey{T,U}
-    #    SVector{T,U}
-    #end
 
     # The AES SBOX, source: https://github.com/kokke/tiny-AES-c/blob/master/aes.c
     const c_sbox = (
@@ -96,9 +93,19 @@ module AES
 
     rcon(i::UInt) = [c_rcon[i],0x0,0x0,0x0]
 
-    # Takes an AES key as array of UInt8-like types.
-    # Returns an array of expanded keys, each expanded key is a Array{T,16}
-    function key_expand(k::Vector{T}) where T
+"""
+    key_expand(k::Vector{T})
+
+Compute the [AES key schedule](https://en.wikipedia.org/wiki/AES_key_schedule)
+
+# Arguments
+- `k` is the key for the AES algorithm. It should be a vector of type T, which must be an UInt8-like type.
+    The key is required to be a valid key for AES-128, AES-196, or AES-256. Hence, `k` must be either 16, 24, or 32 bytes long.
+
+# Returns
+An vector of type T containing the whole key schedule.
+"""
+    function key_expand(k::Vector{T})::Vector{T} where T
         @assert keysizewords(k) == 4 || keysizewords(k) == 6 || keysizewords(k) == 8
         Nk = keysizewords(k)
         Nr = roundsbykey(k)
@@ -117,6 +124,65 @@ module AES
         end
         w
     end
+
+"""
+    inv_key_expand(k::Vector{T})
+
+Compute the [AES key schedule](https://en.wikipedia.org/wiki/AES_key_schedule) given only the **last round key**.
+This is useful for attacks targeting the last round key, or for computing the decryption key on-the-fly.
+
+!!! warning
+    This algorithm is currently only implemented for AES-128.
+
+# Arguments
+- `k` is the last round key used in the AES algorithm. It should be a vector of type T, which must be an UInt8-like type.
+    The key is required to be a valid round key for AES. Hence, `k` must be exactly 16 bytes long.
+
+# Returns
+An vector of type T containing the whole key schedule. Most importantly, the first 16 bytes of this vector are the original AES-128 key.
+
+# Example
+```julia-repl
+julia> key = hex2bytes("000102030405060708090a0b0c0d0e0f")
+julia> last_round_key = AES.key_expand(key)[end-15:end]
+julia> recovered_key = AES.inv_key_expand(last_round_key)[1:16]
+julia> bytes2hex(recovered_key)
+"000102030405060708090a0b0c0d0e0f"
+```
+"""
+    function inv_key_expand(k::Vector{T}) where T
+        @assert keysizewords(k) == 4
+        rounds = 10 # Correct for AES-128
+        w = zeros(UInt8, 4 * 4 * (rounds + 1))
+        # Insert last round key to array
+        w[4 * 4 * (rounds) + 1:4 * 4 * (rounds + 1)] = copy(k)
+
+        # Go through all rounds backwards, always compute the key for the respective round
+        # Hence, all round keys are reconstructed backwards
+        for round::UInt = rounds - 1:-1:0
+            block_start = 4 * 4 * round + 1
+            block_end = 4 * 4 * (round + 1)
+            next_block_start = block_end + 1
+            # Copy key from next block to this block
+            w[block_start : block_end] = w[next_block_start : 4 * 4 * (round + 2)]
+
+            # Reconstruct the last 3 words in this block (those are generated using the rule W_i = W_{i-4} ⊻ W_{i - 1})
+            for i = 3:-1:1
+                word_offset_start = i * 4
+                word_offset_end = (i + 1) * 4 - 1
+                w[block_start + word_offset_start : block_start + word_offset_end] .⊻=
+                    w[next_block_start - 4 + word_offset_start : next_block_start - 4 + word_offset_end]
+            end
+
+            # Reconstruct the first word in this block
+            w[block_start + 0 * 4 : block_start + 1 * 4 - 1] .⊻=
+                sub_bytes(w[next_block_start - 1 * 4 : next_block_start + 0 * 4 - 1][[2,3,4,1]])
+            w[block_start + 0 * 4 : block_start + 1 * 4 - 1] .⊻= rcon(round + 1)
+
+        end
+        return w
+    end
+
 
     # Multiply x by 2 in GF(2^8)
     multiply(x) = ((x<<0x01) ⊻ (((x>>>0x07) & 0x01) * 0x1b))
@@ -153,8 +219,25 @@ module AES
         end
     end
 
-    # block size: 128 bit, key size: variable (128, 196, 256 bits), in array of 8 bit each
-    # Thus: pt must be a vector of size 16, containing some UInt8-type. k can be of size 16, 24, 32
+"""
+    AES_encrypt(plaintext::MVector{16,T}, key::Vector{T})::MVector{16,T} where T
+
+Encrypt a block of 16 bytes with AES.
+
+`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref).
+    TODO references to the relevant types chapter.
+
+# Arguments
+- `plaintext` must be a mutable, statically sized Vector of length 16. It contains the text to encrypt.
+- `key` is a vector containing the key used for the encryption. It must be either of length 16, 24, or 32.
+    Depending on its length, different variants of AES are dispatched:
+    - Length 16: AES-128
+    - Length 24: AES-196
+    - Length 32: AES-256
+
+# Returns
+A `MVector{16,T}` containing the 16-byte long encrypted block.
+"""
     function AES_encrypt(pt::MVector{16,T}, k::Vector{T})::MVector{16,T} where T
         @assert length(pt) == 16
         key_schedule = key_expand(k)
@@ -174,6 +257,25 @@ module AES
         vec(state)
     end
 
+"""
+    AES_decrypt(ciphertext::MVector{16,T}, key::Vector{T})::MVector{16,T} where T
+
+Decrypt a block of 16 bytes with AES.
+
+`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref).
+    TODO references to the relevant types chapter.
+
+# Arguments
+- `ciphertext` must be a mutable, statically sized Vector of length 16. It contains the data to decrypt.
+- `key` is a vector containing the key used for the decryption. It must be either of length 16, 24, or 32.
+    Depending on its length, different variants of AES are dispatched:
+    - Length 16: AES-128
+    - Length 24: AES-196
+    - Length 32: AES-256
+
+# Returns
+A `MVector{16,T}` containing the 16-byte long decrypted block.
+"""
     function AES_decrypt(ct::MVector{16,T}, k::Vector{T})::MVector{16,T} where T
         @assert length(ct) == 16
 
@@ -194,14 +296,44 @@ module AES
         vec(state)
     end
 
-    function AES_encrypt_hex(pt, k)
-        @assert length(pt) == 32
-        bytes2hex(AES_encrypt(MVector{16}(hex2bytes(pt)), hex2bytes(k)))
+"""
+    AES_encrypt_hex(plaintext::String, key::String)
+
+Interpret `plaintext` and `key` in hexadecimal. Return a string containing the hexadecimal encrypted block.
+See [`AES_encrypt`](@ref) for more details.
+
+# Example
+```julia-repl
+julia> AES_encrypt_hex("00112233445566778899aabbccddeeff", "000102030405060708090a0b0c0d0e0f")
+"69c4e0d86a7b0430d8cdb78070b4c55a"
+```
+"""
+    function AES_encrypt_hex(plaintext::String, key::String)
+        @assert length(plaintext) == 32
+        bytes2hex(AES_encrypt(MVector{16}(hex2bytes(plaintext)), hex2bytes(key)))
     end
-    function AES_decrypt_hex(pt, k)
-        @assert length(pt) == 32
-        bytes2hex(AES_decrypt(MVector{16}(hex2bytes(pt)), hex2bytes(k)))
+
+"""
+    AES_decrypt_hex(ciphertext::String, key::String)
+
+Interpret `ciphertext` and `key` in hexadecimal. Return a string containing the hexadecimal decrypted block.
+See [`AES_decrypt`](@ref) for more details.
+
+# Example
+```julia-repl
+julia> AES_decrypt_hex("69c4e0d86a7b0430d8cdb78070b4c55a", "000102030405060708090a0b0c0d0e0f")
+"00112233445566778899aabbccddeeff"
+```
+"""
+    function AES_decrypt_hex(ciphertext::String, key::String)
+        @assert length(ciphertext) == 32
+        bytes2hex(AES_decrypt(MVector{16}(hex2bytes(ciphertext)), hex2bytes(key)))
     end
+
+    export AES_encrypt
+    export AES_decrypt
+    export AES_encrypt_hex
+    export AES_decrypt_hex
 
 
 end

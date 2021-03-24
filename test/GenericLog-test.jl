@@ -1,4 +1,4 @@
-using Test, StaticArrays, Random, CSC.Logging, Cthulhu
+using Test, StaticArrays, Random, CSC.Logging
 
 trace = []
 

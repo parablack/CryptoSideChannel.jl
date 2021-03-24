@@ -40,6 +40,13 @@ function test_en_decrypt(pt, ct, k)
     test_en_decrypt_ho_masked(pt, ct, k)
 end
 
+function test_key_schedule(key)
+    ref_key = AES.key_expand(hex2bytes(key))
+    rec_key = AES.inv_key_expand(ref_key[end-15:end])
+    @test ref_key == rec_key
+    return ref_key[end-15:end]
+end
+
 
 # AES-128
 test_en_decrypt("00112233445566778899aabbccddeeff", "69c4e0d86a7b0430d8cdb78070b4c55a", "000102030405060708090a0b0c0d0e0f")
@@ -59,3 +66,8 @@ test_en_decrypt("6bc1bee22e409f96e93d7e117393172a", "f3eed1bdb5d2a03c064b5a7e3db
 test_en_decrypt("ae2d8a571e03ac9c9eb76fac45af8e51", "591ccb10d410ed26dc5ba74a31362870", "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
 test_en_decrypt("30c81c46a35ce411e5fbc1191a0a52ef", "b6ed21b99ca6f4f9f153e7b1beafed1d", "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4")
 
+# Key schedule recovery
+test_key_schedule("2b7e151628aed2a6abf7158809cf4f3c")
+test_key_schedule("01b0f476d484f43f1aeb6efa9361a8ac")
+test_key_schedule("ae2d8a571e03ac9c9eb76fac45af8e51")
+@test test_key_schedule("000102030405060708090A0B0C0D0E0F") == [0x13, 0x11, 0x1d, 0x7f, 0xe3, 0x94, 0x4a, 0x17, 0xf3, 0x07, 0xa7, 0x8b, 0x4d, 0x2b, 0x30, 0xc5]

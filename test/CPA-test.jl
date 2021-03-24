@@ -30,15 +30,19 @@ end
 
 function test_hamming_noise()
     test_key = (hex2bytes("042788e0999ec84cbeb959cffeaaf2e7"))
-    d = Distributions.Normal(0, 2)
+    d = Distributions.Normal(0, 3)
     sample_function(x) = CPA.sample_power_trace(test_key, x, x -> Base.count_ones(x) + rand(d))
+
+    # println(length(sample_function(MVector{16}(hex2bytes("042788e0999ec84cbeb959cffeaaf2e7")))))
+
     hypothesis(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
     recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
     @test test_key == recovered_key
 end
 
 
-test_hamming_weight()
-test_lsb()
-test_msb()
+#test_hamming_weight()
+#test_lsb()
+#test_msb()
+print("starting")
 test_hamming_noise()

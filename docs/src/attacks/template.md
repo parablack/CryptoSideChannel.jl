@@ -1,11 +1,3 @@
-Attacks
-
-# DPA
-TBD
-
-# CPA
-TBD
-
 # Template
 ```@meta
 CurrentModule = CSC.TemplateAttacks

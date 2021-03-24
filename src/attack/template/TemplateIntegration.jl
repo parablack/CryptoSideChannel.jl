@@ -10,7 +10,7 @@ Performs an template attack against a single load instruction.
 - `sample_function`: A function of signature sample_function(Template, function, value), behaving like [sample_function](@ref).
 - `N`: the number of traces to sample for each possible value. Defaults to \$2^{10}\$
 """
-    function single_byte_template_attack(template::Template, attack_vectors::Vector; fun = single_load_instruction, sample_function = sample_function, N = 2^10)
+    function single_byte_template_attack(template::Template, attack_vectors::AbstractArray; fun = single_load_instruction, sample_function = sample_function, N = 2^10)
         keyGuesses = []
         for value = 0:255
             profiled_vectors = zeros(Float64, (length(sample_function(template, fun, value)), N))

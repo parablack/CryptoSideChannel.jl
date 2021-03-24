@@ -12,6 +12,11 @@ makedocs(sitename="Crypto-Side-Channel",
             "Logging" => "types/logging.md",
             "Masking" => "types/masking.md"
             ],
-        "Attacks" => "attacks.md"],
+        "Attacks" => [
+                "DPA" => "attacks/dpa.md",
+                "CPA" => "attacks/cpa.md",
+                "Template" => "attacks/template.md",
+                ]
+        ],
     repo = "https://github.com/parablack/crypto-side-channel"
     )
