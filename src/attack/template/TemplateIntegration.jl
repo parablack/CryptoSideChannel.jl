@@ -10,40 +10,40 @@ Performs an template attack against a single load instruction.
 - `sample_function`: A function of signature sample_function(Template, function, value), behaving like [sample_function](@ref).
 - `N`: the number of traces to sample for each possible value. Defaults to \$2^{10}\$
 """
-    function single_byte_template_attack(template::Template, attack_vectors::AbstractArray; fun = single_load_instruction, sample_function = sample_function, N = 2^10)
-        keyGuesses = []
-        for value = 0:255
-            profiled_vectors = zeros(Float64, (length(sample_function(template, fun, value)), N))
-            #display(profiled_vectors)
+function single_byte_template_attack(template::Template, attack_vectors::AbstractArray; fun = single_load_instruction, sample_function = sample_function, N = 2^10)
+    keyGuesses = []
+    for value = 0:255
+        profiled_vectors = zeros(Float64, (length(sample_function(template, fun, value)), N))
+        #display(profiled_vectors)
 
-            for i = 1:N
-                profiled_vectors[:,i] = sample_function(template, fun, value)
-            end
-            #display(profiled_vectors)
-            mean = vec(Statistics.mean(profiled_vectors, dims=2))
-            #display(mean)
-            cov = Statistics.cov(profiled_vectors, dims=2)
-            #display(cov)
-            mv_distribution = MvNormal(mean, cov)
-            # This corresponds to the average, but division is unnecessary, since N is constant
-            prob = sum(pdf(mv_distribution, attack_vectors))
-
-            push!(keyGuesses, (prob, value))
+        for i = 1:N
+            profiled_vectors[:,i] = sample_function(template, fun, value)
         end
-        sort!(keyGuesses, rev=true)
-        return keyGuesses
+        #display(profiled_vectors)
+        mean = vec(Statistics.mean(profiled_vectors, dims=2))
+        #display(mean)
+        cov = Statistics.cov(profiled_vectors, dims=2)
+        #display(cov)
+        mv_distribution = MvNormal(mean, cov)
+        # This corresponds to the average, but division is unnecessary, since N is constant
+        prob = sum(pdf(mv_distribution, attack_vectors))
+
+        push!(keyGuesses, (prob, value))
     end
+    sort!(keyGuesses, rev=true)
+    return keyGuesses
+end
 
 
-    # Load at position n
-    # fun must be of type Vector{Int} -> Any and take size bytes in an array
-    function n_wrap_sampler(n::Integer, size)
-        (template, fun, x) ->
-        (
-            svec = [i == n ? x : 0 for i = 1:size];
-            sample_function(template, fun, svec)
-        )
-    end
+# Load at position n
+# fun must be of type Vector{Int} -> Any and take size bytes in an array
+function n_wrap_sampler(n::Integer, size)
+    (template, fun, x) ->
+    (
+        svec = [i == n ? x : 0 for i = 1:size];
+        sample_function(template, fun, svec)
+    )
+end
 
     """
     multi_byte_template_attack(template::Template, attack_vectors, byte_amount; fun = multi_load_instructions, N = 2^10)
@@ -59,13 +59,13 @@ Performs an template attack against multiple unknown bytes.
 
 See also: [single_byte_template_attack](@ref)
 """
-    function multi_byte_template_attack(template::Template, attack_vectors, byte_amount::Integer; fun = multi_load_instructions, N = 2^10)
-        key = []
-        for byte = 1:byte_amount
-            attack_function = n_wrap_sampler(byte, byte_amount)
-            byte_res = single_byte_template_attack(template, attack_vectors, sample_function = attack_function, fun = fun, N = N)
-            push!(key, map(x -> x[2], byte_res[1:5]))
-        end
-        finalKey = LikelyKey(key)
-        finalKey
+function multi_byte_template_attack(template::Template, attack_vectors, byte_amount::Integer; fun = multi_load_instructions, N = 2^10)
+    key = []
+    for byte = 1:byte_amount
+        attack_function = n_wrap_sampler(byte, byte_amount)
+        byte_res = single_byte_template_attack(template, attack_vectors, sample_function = attack_function, fun = fun, N = N)
+        push!(key, map(x -> x[2], byte_res[1:5]))
     end
+    finalKey = LikelyKey(key)
+    finalKey
+end

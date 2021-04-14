@@ -26,11 +26,9 @@ for i = TEST_VECTOR
         a1 = Masking.ArithmeticMask(i);
         a2 = Masking.ArithmeticMask(j);
         for op = [xor, |, &, +, -, *]
-
             @test Masking.unmask(op(b1, j)) == op(i, j)
             @test Masking.unmask(op(i, b2)) == op(i, j)
             @test Masking.unmask(op(b1, b2)) == op(i, j)
-
             @test Masking.unmask(op(a1, j)) == op(i, j)
             @test Masking.unmask(op(i, a2)) == op(i, j)
             @test Masking.unmask(op(a1, a2)) == op(i, j)
@@ -88,3 +86,5 @@ for index = 1:length(TEST_ARRAY)
     masked_index = Masking.BooleanMask(index)
     @test Masking.unmask(TEST_ARRAY[masked_index]) == TEST_ARRAY[index]
 end
+
+# @test Masking.unmask(Masking.ArithmeticMask(0x0) + 1) == 1

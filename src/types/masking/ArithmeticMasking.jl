@@ -1,17 +1,33 @@
 # Plus, minus can be directly computed on the mask
 
-for op = (:+, :-)
-    for type = ((:(Masked{Arithmetic}), :Integer), (:Integer, :(Masked{Arithmetic})), (:(Masked{Arithmetic}), :(Masked{Arithmetic})))
-        eval(quote
-                function Base.$op(a::$(type[1]), b::$(type[2]))::Masked{Arithmetic}
-                    val = Base.$op(extractValue(a), extractValue(b))
-                    mask = Base.$op(extractMask(a), extractMask(b))
-                    result = Masked{Arithmetic,typeof(val),typeof(mask)}(val, mask)
-                    result
-                end
-            end)
-    end
+tosigned(::Type{UInt8}) = Int8
+tosigned(::Type{UInt16}) = Int16
+tosigned(::Type{UInt32}) = Int32
+tosigned(::Type{UInt64}) = Int64
+tosigned(::Type{Int8}) = Int8
+tosigned(::Type{Int16}) = Int16
+tosigned(::Type{Int32}) = Int32
+tosigned(::Type{Int64}) = Int64
+
+for type = ((:(Masked{Arithmetic}), :Integer), (:Integer, :(Masked{Arithmetic})), (:(Masked{Arithmetic}), :(Masked{Arithmetic})))
+    eval(quote
+            function Base.:(+)(a::$(type[1]), b::$(type[2]))::Masked{Arithmetic}
+                val = extractValue(a) + extractValue(b)
+                # mask = extractMask(a) % (tosigned(typeof(extractMask(a)))) + extractMask(b) % (tosigned(typeof(extractMask(b))))
+                mask = extractMask(a) + extractMask(b)
+                result = Masked{Arithmetic,typeof(val),typeof(mask)}(val, mask)
+                result
+            end
+
+            function Base.:(-)(a::$(type[1]), b::$(type[2]))::Masked{Arithmetic}
+                val = extractValue(a) - extractValue(b)
+                mask = extractMask(a) - extractMask(b)
+                result = Masked{Arithmetic,typeof(val),typeof(mask)}(val, mask)
+                result
+            end
+        end)
 end
+
 
 function Base.:(==)(a::Masked{Arithmetic}, b::Masked{Arithmetic})
     # a.val + a.mask == b.val + b.mask

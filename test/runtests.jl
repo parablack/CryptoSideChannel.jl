@@ -12,6 +12,11 @@ end
 include("HOMasking-test.jl")
 end
 
+@safetestset "Logging masked values unit tests" begin
+include("MaskLogging-test.jl")
+end
+
+
 @safetestset "AES unit tests" begin
 include("AES-test.jl")
 end

@@ -4,49 +4,50 @@ This module implements the [SPECK cipher](https://csrc.nist.gov/csrc/media/event
 More documentation can be found in the chapter [SPECK](@ref).
 """
 module SPECK
-    using StaticArrays
 
-    function R(x, y, k)
-         x = Base.bitrotate(x, -8)
-         x += y
+using StaticArrays
 
-         x &= typemax(UInt64)
-         x ⊻= k
-         x &= typemax(UInt64)
-         y = Base.bitrotate(y, 3)
-         y ⊻= x
-         y &= typemax(UInt64)
-         (x, y)
-    end
+function R(x, y, k)
+        x = Base.bitrotate(x, -8)
+        x += y
 
-    function RR(x, y, k)
-        y ⊻= x
-        y &= typemax(UInt64)
-        y = Base.bitrotate(y, -3)
+        x &= typemax(UInt64)
         x ⊻= k
         x &= typemax(UInt64)
-        x -= y
-        x &= typemax(UInt64)
-        x = Base.bitrotate(x, 8)
+        y = Base.bitrotate(y, 3)
+        y ⊻= x
+        y &= typemax(UInt64)
         (x, y)
-   end
+end
 
-   """
-   SPECK_key_expand(key::Tuple{T, T}, rounds)::Vector{T} where T
+function RR(x, y, k)
+    y ⊻= x
+    y &= typemax(UInt64)
+    y = Base.bitrotate(y, -3)
+    x ⊻= k
+    x &= typemax(UInt64)
+    x -= y
+    x &= typemax(UInt64)
+    x = Base.bitrotate(x, 8)
+    (x, y)
+end
+
+"""
+    SPECK_key_expand(key::Tuple{T, T}, rounds)::Vector{T} where T
 
 Expand the key according to the SPECK key schedule. The result is a vector of length `rounds`, containing each round key.
 The first round key is the second component of `key`.
-   """
-    function SPECK_key_expand(key::Tuple{T, T}, rounds)::Vector{T} where T
-        key_schedule = Vector{T}(undef, rounds)
-        for i = 1 : rounds
-            key_schedule[i] = key[2]
-            key = R(key..., i - 1)
-        end
-        key_schedule
-    end
-
     """
+function SPECK_key_expand(key::Tuple{T, T}, rounds)::Vector{T} where T
+    key_schedule = Vector{T}(undef, rounds)
+    for i = 1 : rounds
+        key_schedule[i] = key[2]
+        key = R(key..., i - 1)
+    end
+    key_schedule
+end
+
+"""
     SPECK_encrypt(plaintext::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
 
 Encrypt `plaintext` using `key` with SPECK.
@@ -71,61 +72,50 @@ julia> SPECK.SPECK_encrypt(plaintext, key)
 (0xa65d985179783265, 0x7860fedf5c570d18)
 ```
     """
-    function SPECK_encrypt(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
+function SPECK_encrypt(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
 
-        key_schedule = SPECK_key_expand(key, rounds)
+    key_schedule = SPECK_key_expand(key, rounds)
 
-        for i::UInt64 = 1:rounds
-            pt = R(pt..., key_schedule[i])
-        end
-
-        pt
+    for i::UInt64 = 1:rounds
+        pt = R(pt..., key_schedule[i])
     end
 
-    function SPECK_decrypt(ct::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
+    pt
+end
 
-        key_schedule = SPECK_key_expand(key, rounds)
+function SPECK_decrypt(ct::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
 
-        for i::UInt64 = rounds:-1:1
-            ct = RR(ct..., key_schedule[i])
-        end
+    key_schedule = SPECK_key_expand(key, rounds)
 
-        ct
+    for i::UInt64 = rounds:-1:1
+        ct = RR(ct..., key_schedule[i])
     end
 
-    function SPECK_key_expand_T(key::Tuple{T, T}, ::Val{rounds})::SVector{rounds, T} where {T, rounds}
-        key_schedule = Vector{T}(undef, rounds)
-        for i = 1 : rounds
-            key_schedule[i] = key[2]
-            key = R(key..., i - 1)
-        end
-        key_schedule
+    ct
+end
+
+function SPECK_key_expand_T(key::Tuple{T, T}, ::Val{rounds})::SVector{rounds, T} where {T, rounds}
+    key_schedule = Vector{T}(undef, rounds)
+    for i = 1 : rounds
+        key_schedule[i] = key[2]
+        key = R(key..., i - 1)
+    end
+    key_schedule
+end
+
+SPECK_encrypt_T(pt::Tuple{T, T}, key::Tuple{T, T}, rounds = 32) where T = SPECK_encrypt_T(pt, key, Val(rounds))
+
+function SPECK_encrypt_T(pt::Tuple{T, T}, key::Tuple{T, T}, ::Val{rounds})::Tuple{T,T} where {T, rounds}
+
+    key_schedule = SPECK_key_expand(key, rounds)
+
+    for i::UInt64 = 1:rounds
+        pt = R(pt..., key_schedule[i])
     end
 
-    SPECK_encrypt_T(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32) where T = SPECK_encrypt_T(pt, key, Val(rounds))
-    SPECK_encrypt32(pt::Tuple{T, T}, key::Tuple{T, T}) where T = SPECK_encrypt_T(pt, key, Val(32))
-    function SPECK_encrypt_T(pt::Tuple{T, T}, key::Tuple{T, T}, ::Val{rounds})::Tuple{T,T} where {T, rounds}
-
-        key_schedule = SPECK_key_expand(key, rounds)
-
-        for i::UInt64 = 1:rounds
-            pt = R(pt..., key_schedule[i])
-        end
-
-        pt
-    end
-
-    function perf_test(f)
-        for i = 1:1000000
-            f((u(i), u(42 * i)), (u(i * 10000 + 31241), (~u(i) - 1238290348239048)))
-        end
-    end
-    @time perf_test(SPECK_encrypt)
-    @time perf_test((x, y) -> SPECK_encrypt(x, y; rounds=32))
-    @time perf_test(SPECK_encrypt_T)
-    @time perf_test(SPECK_encrypt32)
-
-    export SPECK_encrypt
-    export SPECK_decrypt
+    pt
+end
+export SPECK_encrypt
+export SPECK_decrypt
 
 end
