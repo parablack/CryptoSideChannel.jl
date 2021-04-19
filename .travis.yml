@@ -15,8 +15,8 @@ jobs:
       julia: 1.6
       script: julia --project=docs -e '
           using Pkg;
-          Pkg.add(url="https://github.com/Riscure/Jlsca.git")
-          Pkg.add("Documenter")
+          Pkg.add(url="https://github.com/Riscure/Jlsca.git");
+          Pkg.add("Documenter");
           Pkg.develop(PackageSpec(path=pwd()));
           Pkg.instantiate();
           include("docs/make.jl");'
