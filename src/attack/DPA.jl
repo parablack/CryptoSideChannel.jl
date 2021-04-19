@@ -1,7 +1,7 @@
 """
-    The DPA module implements **D**ifferential **P**ower **A**ttacks against AES, as described by Kocher in [this paper](https://link.springer.com/article/10.1007/s13389-011-0006-y).
+The DPA module implements generic **D**ifferential **P**ower **A**ttacks. The implementation largely follows the one described by Kocher in [this paper](https://link.springer.com/article/10.1007/s13389-011-0006-y), but is generalized to support other cryptographic algorithms.
 
-    A detailed documentation can be found at [DPA](@ref)
+A detailed documentation can be found at [DPA](@ref)
 """
 module DPA
 

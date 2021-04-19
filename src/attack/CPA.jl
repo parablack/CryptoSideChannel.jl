@@ -1,7 +1,7 @@
 """
-    The CPA module implements **C**orrelation **P**ower **A**ttacks against AES.
+The CPA module implements generic **C**orrelation **P**ower **A**ttacks.
 
-    More documentation is available at [CPA](@ref)
+More documentation is available at [CPA](@ref)
 """
 module CPA
 

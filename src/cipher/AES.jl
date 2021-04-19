@@ -224,7 +224,7 @@ end
 
 Encrypt a block of 16 bytes with AES.
 
-`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref).
+`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref integer_types).
     TODO references to the relevant types chapter.
 
 # Arguments
@@ -262,7 +262,7 @@ end
 
 Decrypt a block of 16 bytes with AES.
 
-`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref).
+`T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref integer_types).
     TODO references to the relevant types chapter.
 
 # Arguments

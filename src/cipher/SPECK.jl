@@ -53,8 +53,8 @@ end
 Encrypt `plaintext` using `key` with SPECK.
 
 # Arguments
-- `plaintext` is 128-bit data, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref Integer Types) type.
-- `key` is the 128-bit key, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref Integer Types) type.
+- `plaintext` is 128-bit data, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref integer_types) type.
+- `key` is the 128-bit key, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref integer_types) type.
 - `rounds` is the number of rounds to execute. Defaults to `32`, since this is the number of rounds mentioned in the original specification of SPECK.
 
 # Returns
@@ -83,6 +83,31 @@ function SPECK_encrypt(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,
     pt
 end
 
+"""
+    SPECK_decrypt(ciphertext::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
+
+Decrypt `ciphertext` using `key` with SPECK.
+
+# Arguments
+- `ciphertext` is 128-bit data, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref integer_types) type.
+- `key` is the 128-bit key, split into two shares of type `T`. Each share should contain 64 bits of the plaintext. `T` can be either `UInt64` or a similar [custom integer](@ref integer_types) type.
+- `rounds` is the number of rounds to execute. Defaults to `32`, since this is the number of rounds mentioned in the original specification of SPECK.
+
+# Returns
+A `Tuple{T,T}` containing the 128-bit encrypted data in two shares of 64 bit.
+
+!!! note
+    T can be a custom integer type, but note that `T` *must* behave like `UInt64`. This includes truncating overflows in additions at 64 bit.
+
+# Example
+The example is a SPECK128 test vector from [the original SPECK paper](https://eprint.iacr.org/2013/404.pdf)
+```julia-repl
+julia> key = (0x0f0e0d0c0b0a0908, 0x0706050403020100)
+julia> plaintext = (0x6c61766975716520, 0x7469206564616d20)
+julia> SPECK.SPECK_decrypt(ciphertext, key)
+(0x6c61766975716520, 0x7469206564616d20)
+```
+    """
 function SPECK_decrypt(ct::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
 
     key_schedule = SPECK_key_expand(key, rounds)

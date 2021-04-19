@@ -7,11 +7,6 @@ end
 op = :xor
 for type = ((:(Masked{Boolean}), :Integer), (:Integer, :(Masked{Boolean})), (:(Masked{Boolean}), :(Masked{Boolean})))
     eval(quote
-"""
-    Base.$($op)(a::$($(type[1])), b::$($(type[2])))
-
-MetaTest.
-"""
         function Base.$op(a::$(type[1]), b::$(type[2]))::Masked{Boolean}
             val = Base.$op(extractValue(a), extractValue(b))
             mask = Base.$op(extractMask(a), extractMask(b))

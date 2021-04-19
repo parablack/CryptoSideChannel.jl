@@ -32,7 +32,11 @@ for i = [0,1,2,3,4,13,255,1337,2^31-1, 2^32, -1, -2, -10, -100, -1337, -2^32]
     end
 end
 
-mask = Logging.randomBitMask(10, 256)
+# Logs for each result the corresponding vector in the mask. Currently only for 8-bit values (AES)
+randomBitMask(vector_len, mask_len) = SVector{mask_len}([Random.bitrand(vector_len) for _ in 1:mask_len])
+
+
+mask = randomBitMask(10, 256)
 
 for i = [0,1,2,3,4,13,128,129,255]
     for j = [0,1,2,3,4,13,128,129,255]

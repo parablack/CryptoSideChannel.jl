@@ -1,4 +1,8 @@
+"""
+This module implements Template attacks on cryptographic side channels.
 
+More information can be found at [Template](@ref)
+"""
 module TemplateAttacks
 
 using CryptoSideChannel.Logging

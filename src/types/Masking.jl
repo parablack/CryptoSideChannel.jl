@@ -12,6 +12,21 @@ import Base.convert
 # Boolean masking over (Z/2Z)^k, Arithmetic masking over Z/(2^kZ)
 @enum MaskType Boolean=1 Arithmetic=2
 
+"""
+    struct Masked{M, T1, T2}
+        val::T1
+        mask::T2
+    end
+
+The `Masked` datatype behaves like an integer, but splits its internal value into two shares. Hence, the plain value held by a `Masked` type should not be observable in memory
+!!! warning
+    The above statement holds **only in theory**. See the article on [problems with high-level software masking](@ref masking_problems) for details on this problem.
+
+## Type Arguments
+- `M` is the way in which the underlying value is masked. `M` can be either `Boolean` or `Arithmetic`, representing [boolean masking](@ref boolean_masking) or [arithmetic masking](@ref arithmetic_masking), respectively.
+- `T1` is the type of the first share. This can be any integer-like type: A primitive integer, a `GenericLog` type, or another `Masked` type for higher-order masking.
+- `T2` is the type of the second share. This should **always** be either a primitive integer type, or a `GenericLog` type.
+"""
 struct Masked{M, T1, T2} # T2<:Integer would be nice! But this does not work with logging.
     val::T1
     mask::T2
@@ -26,7 +41,7 @@ __underlyingType(::T) where T = T
 
 Create a masked integer holding value `v`. Internally, `v` will be stored in two shares, `val` and `mask`, such that `v` = `val ⊻ mask`. The latter condition is an invariant of this datatype.
 
-It should always be the case that `mask` is a primitive type, i.e. of the shape `Integer` or `GenericLog`. If higher-order masking is desired, `val` can be of the shape `Masked`.
+It should always be the case that `mask` is a primitive type, i.e. of the type `Integer` or `GenericLog`. If higher-order masking is desired, `val` can be of the type `Masked`.
 """
 function BooleanMask(val)
     mask = rand(__underlyingType(val))
@@ -38,7 +53,7 @@ end
 
 Create a masked integer holding value `v`. Internally, `v` will be stored in two shares, `val` and `mask`, such that `v` = `val - mask`. The latter condition is an invariant of this datatype.
 
-It should always be the case that `mask` is a primitive type, i.e. of the shape `Integer` or `GenericLog`. If higher-order masking is desired, `val` can be of the shape `Masked`.
+It should always be the case that `mask` is a primitive type, i.e. of the type `Integer` or `GenericLog`. If higher-order masking is desired, `val` can be of the type `Masked`.
 """
 function ArithmeticMask(val)
     mask = rand(__underlyingType(val))
@@ -55,7 +70,7 @@ extractMask(a::Integer) = convert(typeof(a), 0)
 
 Unmask the contained integer by calculating `val ⊻ mask`, or `val + mask` respectively.
 
-Note that this function is *unsafe*. After calling this function, the data will no longer be split into two shares. Thus, this method is for testing only.
+Note that this function is *unsafe* with respect to side-channels. After calling this function, the data will no longer be split into two shares. Thus, this method should only be called at the end of a cryptographic algorithm to extract the final result.
 """
 unmask(a::Masked{Boolean}) = a.val ⊻ a.mask
 unmask(a::Masked{Arithmetic}) = a.val + a.mask
@@ -120,7 +135,6 @@ function convert(::Type{Masked{Arithmetic, T1, T2}}, a::Masked{Arithmetic, T1old
     res = convert(Masked{Boolean, T1, T2}, bool)
     return booleanToArithmetic(res)
 end
-
 
 
 include("masking/BooleanMasking.jl")

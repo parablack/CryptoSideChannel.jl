@@ -10,7 +10,9 @@ makedocs(sitename="CryptoSideChannel.jl",
         "Types" => [
             "Integer Types" => "types/integer-types.md",
             "Logging" => "types/logging.md",
-            "Masking" => "types/masking.md"
+            "Masking" => "types/masking.md",
+            "Create your own traces" => "types/create-traces.md"
+
             ],
         "Attacks" => [
                 "DPA" => "attacks/dpa.md",
