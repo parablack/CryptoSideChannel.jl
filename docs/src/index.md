@@ -9,11 +9,11 @@ This project is split into three parts:
 Currently, two ciphers are implemented: The [SPECK cipher](https://eprint.iacr.org/2013/404), and the [AES cipher suite](https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf).
 
 ```@docs
-CSC.AES
+CryptoSideChannel.AES
 ```
 
 ```@docs
-CSC.SPECK
+CryptoSideChannel.SPECK
 ```
 
 ## Custom Types
@@ -29,11 +29,11 @@ See the [Integer Types](@ref) page for a more detailed explanation on how to dec
 
 
 ```@docs
-CSC.Masking
+CryptoSideChannel.Masking
 ```
 
 ```@docs
-CSC.Logging
+CryptoSideChannel.Logging
 ```
 
 
@@ -44,9 +44,9 @@ Multiple side-channel attacks against the ciphers above have been implemented:
 * ... more to come
 
 ```@docs
-CSC.DPA
+CryptoSideChannel.DPA
 ```
 
 ```@docs
-CSC.CPA
+CryptoSideChannel.CPA
 ```

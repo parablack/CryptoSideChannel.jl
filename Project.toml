@@ -1,8 +1,12 @@
-name = "CSC"
+name = "CryptoSideChannel"
+uuid = "5125bf15-d1e5-4048-9f9a-1009b1b43be4"
+authors = ["Simon Schwarz"]
+version = "0.1.0"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Jlsca = "dcc1f4ae-7dba-11e8-3b6a-0976b94e0e7a"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Profile = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"

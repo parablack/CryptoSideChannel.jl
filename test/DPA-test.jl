@@ -1,4 +1,4 @@
-using CSC.DPA, Test, StaticArrays
+using CryptoSideChannel.DPA, Test, StaticArrays
 
 test_key = (hex2bytes("41112233445566778899aabbccddeeff"))
 sample_function(x) = DPA.sample_power_trace(test_key, x)

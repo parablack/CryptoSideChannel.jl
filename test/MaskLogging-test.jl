@@ -1,4 +1,4 @@
-using Test, StaticArrays, Random, CSC
+using Test, StaticArrays, Random, CryptoSideChannel
 
 
 al(x) = Masking.ArithmeticMask(Logging.ForgetfulHammingLog(x))

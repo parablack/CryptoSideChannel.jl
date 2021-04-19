@@ -6,7 +6,7 @@ Further documentation is available at [Masking](@ref).
 module Masking
 
 using Random
-using CSC.Logging
+using CryptoSideChannel.Logging
 import Base.convert
 
 # Boolean masking over (Z/2Z)^k, Arithmetic masking over Z/(2^kZ)

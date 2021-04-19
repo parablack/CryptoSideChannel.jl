@@ -10,9 +10,9 @@ Intros concept power estimation function. Some examples?
 
 ## Real-world attacks against AES
 ```@meta
-CurrentModule = CSC.CPA.AES_RealWorld
+CurrentModule = CryptoSideChannel.CPA.AES_RealWorld
 ```
-The module `CSC.AES.AES_RealWorld` implements a real-world CPA attack against the
+The module `CryptoSideChannel.AES.AES_RealWorld` implements a real-world CPA attack against the
 [Northeastern University](https://chest.coe.neu.edu/) TeSCASE dataset, which can be obtained [here](https://chest.coe.neu.edu/?current_page=POWER_TRACE_LINK&software=ptunmasked). The attacked traces have been generated on a [SASEBO board](https://www.risec.aist.go.jp/project/sasebo/) that executed the AES algorithm.
 
 

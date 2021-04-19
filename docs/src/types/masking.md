@@ -1,7 +1,7 @@
 # Masking
 
 @meta
-CurrentModule = CSC.Masking
+CurrentModule = CryptoSideChannel.Masking
 
 ```@docs
 Base.xor

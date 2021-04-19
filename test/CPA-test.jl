@@ -1,4 +1,4 @@
-using CSC.CPA, CSC.AES
+using CryptoSideChannel
 using Test, StaticArrays
 using Distributions
 
@@ -44,5 +44,4 @@ end
 #test_hamming_weight()
 #test_lsb()
 #test_msb()
-print("starting")
 test_hamming_noise()

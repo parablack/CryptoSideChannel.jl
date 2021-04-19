@@ -1,5 +1,4 @@
-using CSC, Test, StaticArrays
-using CSC.Logging
+using CryptoSideChannel, Test, StaticArrays
 using Distributions
 
 
@@ -19,7 +18,7 @@ function encrypt_log_trace(pt::MVector{16, UInt8})
     kl = map(x -> Masking.BooleanMask(Logging.SingleFunctionLog(x, clos, reduce_function)), key)
     ptl = map(x -> Masking.BooleanMask(Logging.SingleFunctionLog(x, clos, reduce_function)), pt)
 
-    output = (Logging.extractValue ∘ Masking.unmask).(CSC.AES.AES_encrypt(ptl, kl))
+    output = (Logging.extractValue ∘ Masking.unmask).(AES.AES_encrypt(ptl, kl))
 
     return (output, copy(coll))
 end

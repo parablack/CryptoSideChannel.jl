@@ -1,9 +1,9 @@
 push!(LOAD_PATH,"../src/")
 
-using Documenter, CSC
+using Documenter, CryptoSideChannel
 
-makedocs(sitename="Crypto-Side-Channel",
-    modules = [CSC],
+makedocs(sitename="CryptoSideChannel.jl",
+    modules = [CryptoSideChannel],
     pages = [
         "Home" => "index.md",
         "Ciphers" => "ciphers.md",
@@ -18,5 +18,5 @@ makedocs(sitename="Crypto-Side-Channel",
                 "Template" => "attacks/template.md",
                 ]
         ],
-    repo = "https://github.com/parablack/crypto-side-channel"
+    repo = "https://github.com/parablack/CryptoSideChannel.jl"
     )

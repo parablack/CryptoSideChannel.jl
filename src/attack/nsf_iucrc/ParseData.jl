@@ -1,5 +1,5 @@
-using CSC.CPA
-using CSC.AES
+using CryptoSideChannel.CPA
+using CryptoSideChannel.AES
 using StaticArrays
 
 

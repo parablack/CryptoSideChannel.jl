@@ -1,7 +1,8 @@
 
 module TemplateAttacks
 
-using CSC.Logging, StaticArrays
+using CryptoSideChannel.Logging
+using StaticArrays
 using Distributions
 using Random
 using DataStructures

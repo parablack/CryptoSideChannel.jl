@@ -1,4 +1,4 @@
-using Test, StaticArrays, Random, CSC.Logging
+using Test, StaticArrays, Random, CryptoSideChannel.Logging
 
 trace = []
 

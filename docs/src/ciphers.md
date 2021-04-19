@@ -2,7 +2,7 @@
 
 ## AES
 ```@meta
-CurrentModule = CSC.AES
+CurrentModule = CryptoSideChannel.AES
 ```
 
 
@@ -33,7 +33,7 @@ AES.inv_key_expand
 
 ## SPECK
 ```@meta
-CurrentModule = CSC.SPECK
+CurrentModule = CryptoSideChannel.SPECK
 ```
 
 ### Encryption and Decryption

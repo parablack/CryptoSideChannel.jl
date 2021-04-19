@@ -1,6 +1,6 @@
 # Template
 ```@meta
-CurrentModule = CSC.TemplateAttacks
+CurrentModule = CryptoSideChannel.TemplateAttacks
 ```
 
 ```@docs

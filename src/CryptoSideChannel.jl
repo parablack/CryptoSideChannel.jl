@@ -1,8 +1,6 @@
 import Base.:+
 
-module CSC
-
-using StaticArrays
+module CryptoSideChannel
 
 include("types/GenericLog.jl")
 include("types/Masking.jl")

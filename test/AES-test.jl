@@ -1,9 +1,8 @@
-using CSC, Test, StaticArrays
-using CSC.Logging
+using CryptoSideChannel, Test, StaticArrays
 
 function test_en_decrypt_uint8(pt, ct, k)
-    @test CSC.AES.AES_encrypt_hex(pt, k) == ct
-    @test CSC.AES.AES_decrypt_hex(ct, k) == pt
+    @test AES.AES_encrypt_hex(pt, k) == ct
+    @test AES.AES_decrypt_hex(ct, k) == pt
 end
 
 function test_en_decrypt_log(pt, ct, k)
@@ -11,8 +10,8 @@ function test_en_decrypt_log(pt, ct, k)
     ptl = map(Logging.ForgetfulHammingLog, MVector{16}(hex2bytes(pt)))
     ctl = map(Logging.ForgetfulHammingLog, MVector{16}(hex2bytes(ct)))
 
-    @test CSC.AES.AES_encrypt(ptl, kl) == ctl
-    @test CSC.AES.AES_decrypt(ctl, kl) == ptl
+    @test AES.AES_encrypt(ptl, kl) == ctl
+    @test AES.AES_decrypt(ctl, kl) == ptl
 end
 
 function test_en_decrypt_masked(pt, ct, k)
@@ -20,8 +19,8 @@ function test_en_decrypt_masked(pt, ct, k)
     ptl = map(Masking.BooleanMask, MVector{16}(hex2bytes(pt)))
     ctl = map(Masking.BooleanMask, MVector{16}(hex2bytes(ct)))
 
-    @test CSC.AES.AES_encrypt(ptl, kl) == ctl
-    @test CSC.AES.AES_decrypt(ctl, kl) == ptl
+    @test AES.AES_encrypt(ptl, kl) == ctl
+    @test AES.AES_decrypt(ctl, kl) == ptl
 end
 
 function test_en_decrypt_ho_masked(pt, ct, k)
@@ -29,8 +28,8 @@ function test_en_decrypt_ho_masked(pt, ct, k)
     ptl = map(Masking.BooleanMask ∘ Masking.BooleanMask, MVector{16}(hex2bytes(pt)))
     ctl = map(Masking.BooleanMask ∘ Masking.BooleanMask, MVector{16}(hex2bytes(ct)))
 
-    @test CSC.AES.AES_encrypt(ptl, kl) == ctl
-    @test CSC.AES.AES_decrypt(ctl, kl) == ptl
+    @test AES.AES_encrypt(ptl, kl) == ctl
+    @test AES.AES_decrypt(ctl, kl) == ptl
 end
 
 function test_en_decrypt(pt, ct, k)

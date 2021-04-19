@@ -5,9 +5,7 @@
 """
 module DPA
 
-using CSC.AES
-using CSC
-using CSC.Logging
+using CryptoSideChannel
 using StaticArrays
 using Plots
 using Profile
@@ -51,7 +49,7 @@ end
 # Sample function must take an AES input MVector{16, UInt8} and return an array of Integers
 function DPA_AES_analyze(sample_function)
     # sample traces
-    traces = [MVector{16}(rand(UInt8, 16)) for _=1:2^8]
+    traces = [MVector{16}(rand(UInt8, 16)) for _=1:2^7]
     traces = map(x -> (x, sample_function(x)), traces)
     completeKey = []
     for idx = 1:16

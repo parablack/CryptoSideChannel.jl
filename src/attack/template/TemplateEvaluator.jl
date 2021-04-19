@@ -3,10 +3,10 @@ The `Template` struct stores a noise distribution, as well as values for integer
 
 If the integer `x` is logged, a random vector from `distribution` is drawn. Then, `values[x]` is added to this random vector.
 """
-    struct Template
-        distribution::MvNormal
-        values::SVector
-    end
+struct Template
+    distribution::MvNormal
+    values::SVector
+end
 
 
 """

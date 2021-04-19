@@ -5,9 +5,7 @@
 """
 module CPA
 
-using CSC.AES
-using CSC
-using CSC.Logging
+using CryptoSideChannel
 using Statistics
 using StaticArrays
 using Plots

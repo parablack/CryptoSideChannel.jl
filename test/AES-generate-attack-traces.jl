@@ -1,5 +1,5 @@
-using CSC, Test, StaticArrays
-using CSC.Logging
+using CryptoSideChannel
+using Test, StaticArrays
 using Distributions
 
 SECRET_KEY = "426f9faa05e9a343bf67bdc9e3a3f5c0" # change for challenge
@@ -17,7 +17,7 @@ function encrypt_log_trace(pt::MVector{16, UInt8})
     kl = map(x -> Logging.SingleFunctionLog(x, clos, reduce_function), hex2bytes(SECRET_KEY))
     ptl = map(x -> Logging.SingleFunctionLog(x, clos, reduce_function), pt)
 
-    CSC.AES.AES_encrypt(ptl, kl)
+    AES.AES_encrypt(ptl, kl)
 
     return copy(coll)
 end

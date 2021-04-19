@@ -1,6 +1,6 @@
 using Statistics
 using Distributions
-using CSC.TemplateAttacks
+using CryptoSideChannel.TemplateAttacks
 
 include("ParseData.jl")
 

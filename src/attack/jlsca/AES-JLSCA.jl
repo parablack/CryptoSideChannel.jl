@@ -4,7 +4,7 @@ using Jlsca.Trs
 using StaticArrays
 using Printf
 using Distributions
-using CSC
+using CryptoSideChannel
 
 mkpath("traces")
 key = hex2bytes("426f9faa05e9a343bf67bdc9e3a3f5c0")
@@ -28,7 +28,7 @@ function encrypt_log_trace(pt::MVector{16, UInt8})
     kl = map(x -> Logging.SingleFunctionLog(x, clos, reduce_function), key)
     ptl = map(x -> Logging.SingleFunctionLog(x, clos, reduce_function), pt)
 
-    output = Logging.extractValue.(CSC.AES.AES_encrypt(ptl, kl))
+    output = Logging.extractValue.(AES.AES_encrypt(ptl, kl))
 
     return (output, copy(coll))
 end

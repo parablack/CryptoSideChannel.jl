@@ -1,4 +1,4 @@
-using Test, StaticArrays, Random, CSC.Masking
+using Test, StaticArrays, Random, CryptoSideChannel.Masking
 
 TEST_VECTOR = [0,1,2,3,4,13,255,1337,2^31-1, 2^32, -1, -2, -10, -100, -1337, -2^32, 0x0, 0xAB, 0xFF, 0xCAFE, 0xFFFF]
 TEST_VECTOR_SMALL = [0,1,255,2^32,-3,0xAA]

@@ -1,8 +1,5 @@
-using CSC, Test
+using CryptoSideChannel, Test
 using StaticArrays
-using CSC.Logging
-using CSC.Masking
-using CSC.SPECK
 
 u(i) = convert(UInt64, i)
 h(i) = Logging.ForgetfulHammingLog(u(i))
@@ -17,14 +14,14 @@ function test_lifted_en_decryption(key, pt, ct, lift, reduce)
     ct_lift = map(lift, ct)
 
     # Encrypt
-    ct_rec = CSC.SPECK.SPECK_encrypt(pt_lift, key_lift)
+    ct_rec = SPECK.SPECK_encrypt(pt_lift, key_lift)
     # Reduce encrypted
     ct_rec = map(reduce, ct_rec)
     # Assert
     @test ct_rec == ct
 
     # Decrypt
-    pt_rec = CSC.SPECK.SPECK_decrypt(ct_lift, key_lift)
+    pt_rec = SPECK.SPECK_decrypt(ct_lift, key_lift)
     # Reduce decrypted
     pt_rec = map(reduce, pt_rec)
     # Assert
@@ -59,7 +56,7 @@ function perf_test(f)
         f((u(i), u(42 * i)), (u(i * 10000 + 31241), (~u(i) - 1238290348239048)))
     end
 end
-@time perf_test(SPECK_encrypt)
-@time perf_test((x, y) -> SPECK_encrypt(x, y; rounds=32))
+@time perf_test(SPECK.SPECK_encrypt)
+@time perf_test((x, y) -> SPECK.SPECK_encrypt(x, y; rounds=32))
 @time perf_test(SPECK.SPECK_encrypt_T)
 @time perf_test(SPECK_encrypt32)
