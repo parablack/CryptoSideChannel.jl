@@ -24,14 +24,15 @@ end
 include("SPECK-test.jl")
 end
 
-@safetestset "DPA unit tests" begin
-include("DPA-test.jl")
-end
+# Expensive tests: Comment out if testing is wished.
+# @safetestset "DPA unit tests" begin
+# include("DPA-test.jl")
+# end
 
-@safetestset "CPA unit tests" begin
-include("CPA-test.jl")
-end
+# @safetestset "CPA unit tests" begin
+# include("CPA-test.jl")
+# end
 
-@safetestset "Template attack unit tests" begin
-include("Template-test.jl")
-end
+# @safetestset "Template attack unit tests" begin
+# include("Template-test.jl")
+# end
