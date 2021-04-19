@@ -22,3 +22,7 @@ makedocs(sitename="CryptoSideChannel.jl",
         ],
     repo = "https://github.com/parablack/CryptoSideChannel.jl"
     )
+
+deploydocs(
+    repo = "github.com/parablack/CryptoSideChannel.jl.git",
+)
