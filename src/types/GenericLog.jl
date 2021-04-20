@@ -151,14 +151,22 @@ function StochasticLog(val, stream, template_for_value, noise_closure)
 end
 
 
-function Base.:(-)(a::GenericLog{U,S}) where {U,S}
-    res = -extractValue(a)
-    result = GenericLog{U,S,typeof(res)}(res)
-    push!(S(), logValue(result))
-    result
+for op = (:-, :~, :abs, :abs2, :sign)
+    eval(quote
+"""
+    $($op)
+Arithmetic method, overloaded for `GenericLog`
+"""
+        function Base.$op(a::GenericLog{U,S}) where {U,S}
+            res = Base.$op(extractValue(a))
+            result = GenericLog{U,S,typeof(res)}(res)
+            push!(S(), logValue(result))
+            result
+        end
+    end)
 end
 
-for op = (:+, :*, :<<, :>>>, :|, :&, :-, :xor, :bitrotate, :mod)
+for op = (:+, :*, :<<, :>>>, :>>, :|, :&, :-, :xor, :bitrotate, :mod, :/, :÷, :^, :%, ://, :copysign, :fld, :cld, :gcd, :lcm)
     for type = (:GenericLog, :Integer)
         eval(quote
             function Base.$op(a::GenericLog{U,S}, b::$(type)) where {U,S}
@@ -193,9 +201,24 @@ for type = (:AbstractArray, :Tuple)
     end)
 end
 
-function Base.:(==)(a::GenericLog, b::GenericLog)
-    extractValue(a) == extractValue(b)
+# Comparison
+for op = (:(==), :≠, :<, :<=, :>, :>=, :isequal)
+    eval(quote
+        function Base.$op(a::GenericLog, b::GenericLog)
+            Base.$op(extractValue(a), extractValue(b))
+        end
+    end)
 end
+
+for op = (:isfinite, :isinf, :isnan)
+    eval(quote
+        function Base.$op(a::GenericLog)
+            Base.$op(extractValue(a))
+        end
+    end)
+end
+
+
 function Base.hash(a::GenericLog)
     hash(extractValue(a))
 end

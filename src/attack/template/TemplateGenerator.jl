@@ -1,7 +1,7 @@
-"""
+@doc raw"""
     random_diagonal_multivariate_distribution(d::Integer)
 
-Generate a random normal multivariate distribution over `d` dimensions. The mean will be a vector chosen randomly from \$\\[0, 1\\]^d\$.
+Generate a random normal multivariate distribution over `d` dimensions. The mean will be a vector chosen randomly from $\[0, 1\]^d$.
 
 Note that all random values are uncorrelated. Hence, our covariance matrix is a diagonal matrix.
 """

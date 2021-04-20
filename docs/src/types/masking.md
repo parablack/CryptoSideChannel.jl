@@ -38,4 +38,4 @@ TODO.
 
 Purport: Compiler optimisations may kill all guarantees. This is for educational / testing purposes only! Do not compile with this tool and expect everything to be safe...
 
-
+## [Defining new methods for `Masked` types](@id extending_masking_funs)
