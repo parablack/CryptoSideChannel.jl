@@ -21,7 +21,7 @@ abstract type LogFunction end
 """
     abstract type SingleFunctionLog{F} <: LogFunction end
 
-A wrapper for simple reduction functions that take a single argument and output a reduced value.
+A wrapper for simple reduction functions that take a single argument and outputs a reduced value.
 """
 abstract type SingleFunctionLog{F} <: LogFunction end
 
@@ -31,11 +31,11 @@ abstract type SingleFunctionLog{F} <: LogFunction end
         val::T
     end
 
-The `GenericLog` datatype behaves like an integer, but additionally logs a trace of all values contained. Technically, this type logs its reduced value every time a operation is performed on it.
+The `GenericLog` datatype behaves like an integer, but additionally logs a trace of all values contained. Technically, this type appends a reduced value to an array every time a operation is performed on it.
 
 # Type Arguments
-- `T` is the underlying type that the logging should be performed upon. `T` may be a primitive integer type (like `UInt8` or `Int`), or any integer-like type (for example, another instance of `GenericLog` or a `Masked` integer).
-- `U` should be a container holding a reduction function. The purpose of this reduction function is to preprocess all single values stores in this type. Most commonly, only a value derived from the intermediate values should be logged, like the Hamming weight, or the least significant bit. The reduction function should compute this value. More on this topic can be found at the chapter on [Reduction functions](@ref).
+- `T` is the underlying type that our type should mimic. `T` may be a primitive integer type (like `UInt8` or `Int`), or any integer-like type (for example, another instance of `GenericLog` or a `Masked` integer).
+- `U` should be a container holding a reduction function. The purpose of this reduction function is to preprocess values of the underlying type for logging. Most commonly, only a value derived from the underlying value should be logged, like the Hamming weight or the least significant bit. Such a derived value can be computed with the reduction function. Further details can be found at [Reduction functions](@ref).
 - `S` is a **closure** returning the array where values should be logged to. Note that `S` must be a [bits type](https://docs.julialang.org/en/v1/base/base/#Base.isbitstype). This can only be the case if the array returned by `S` is a global variable.
 """
 struct GenericLog{U,S,T}

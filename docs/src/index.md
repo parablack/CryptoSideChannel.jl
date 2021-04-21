@@ -1,9 +1,9 @@
 # `CryptoSideChannel.jl`: A customizable side-channel modelling and analysis framework in Julia
 
-This library focuses on generic side-channel analysis of various cryptographic algorithms. This implementation uses custom types that behave like integers. However, those types may additionally log their values, or mask the internal representation of their values.
-In combination, this allows for easy recording of side-channels for educational and testing purposes.
+This library focuses on generic side-channel analysis of cryptographic algorithms. The implementation uses custom types that behave like integers. However, those types may additionally log their values, or mask the internal representation of their values.
+In combination, this allows for easy recording of masked-and unmasked side-channels for educational and testing purposes. See the chapter on [Custom Types](@ref) for more information about this part.
 
-This project is split into three parts:
+Lastly, this project implements several attacks against the recorded traces. See the chapter on [Attacks](@ref) for more details.
 
 ## Ciphers
 Currently, two ciphers are implemented: The [SPECK cipher](https://eprint.iacr.org/2013/404), and the [AES cipher suite](https://csrc.nist.gov/csrc/media/projects/cryptographic-standards-and-guidelines/documents/aes-development/rijndael-ammended.pdf).

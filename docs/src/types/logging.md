@@ -14,7 +14,7 @@ Logging.GenericLog
 Most operations on integers can also be performed on instances of `GenericLog`. By default, this includes the most common operations like calculations, array accesses, and more.
 However, it is easy to extend this functionality to other methods if desired. See the chapter on [Defining new methods for `GenericLog` types](@ref extending_log_funs) for more details.
 
-It may be useful to extract the content of a `GenericLog` type, for example at the end of a cryptographic calculation.
+It may be useful to extract the content of a `GenericLog` type, for example, at the end of a cryptographic calculation.
 ```@docs
 Logging.extractValue
 ```
@@ -33,7 +33,7 @@ StochasticLog
 ```
 
 ## Reduction functions
-A **reduction function** for a `GenericLog` over base type `T` should take any value of type `T`, and produce any result that eventually is logged. Reasonable choices for reduction functions could be a model of side-channel emissions. For example, the [Hamming weight](https://iacr.org/archive/ches2004/31560016/31560016.pdf) could be a reasonable model which is already pre-defined.
+A **reduction function** for a `GenericLog` over base type `T` should take any value of type `T`, and produce any result that eventually is logged. Reasonable choices for reduction functions could be a model of side-channel emissions. For example, the [Hamming weight](https://iacr.org/archive/ches2004/31560016/31560016.pdf) could be a possible model which is already pre-defined.
 However, this framework allows free choices of reduction functions, hence providing great flexibility.
 
 ### Single Function Log
