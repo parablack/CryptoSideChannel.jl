@@ -168,10 +168,6 @@ castInteger(T, x::Integer) = convert(T, x)
 
 for type = (:(AbstractArray{T}), :(Tuple{Vararg{T}}))
     eval(quote
-    #    TODO
-    #    function Base.getindex(a::$type, b::Masked{Arithmetic}) where T
-    #        return ArithmeticMask(Base.getindex(a, unmask(b)))
-    #    end
         function Base.getindex(a::$type, b::Masked{Arithmetic}) where T
             len = nextpow(2, length(a))
             masked_array = Vector{Union{T, Missing}}(missing, len)

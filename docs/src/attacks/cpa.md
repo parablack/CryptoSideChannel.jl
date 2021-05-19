@@ -1,10 +1,29 @@
 # CPA
+```@meta
+CurrentModule = CryptoSideChannel.CPA
+```
 
 Intros CPA
 
 ## [Power estimation function](@id power_estimation_function)
 
 Intros concept power estimation function. Some examples?
+
+
+## CPA attacks against AES
+
+```@docs
+CPA_AES_analyze
+CPA_AES_analyze_traces
+```
+
+## CPA attacks against SPECK
+Attacks against SPECK are a bit more difficult, since both key parts (the left 64 bits and the right 64 bits) have to be attacked differently.
+
+```@docs
+CPA_SPECK_analyze
+CPA_SPECK_analyze_traces
+```
 
 
 

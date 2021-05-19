@@ -41,7 +41,7 @@ function test_hamming_noise()
 end
 
 
-#test_hamming_weight()
-#test_lsb()
-#test_msb()
+test_hamming_weight()
+test_lsb()
+test_msb()
 test_hamming_noise()

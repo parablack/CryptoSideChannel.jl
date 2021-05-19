@@ -6,6 +6,9 @@ More documentation is available at [CPA](@ref)
 module CPA
 
 using CryptoSideChannel
+using CryptoSideChannel.Logging
+using CryptoSideChannel.AES
+using CryptoSideChannel.SPECK
 using Statistics
 using StaticArrays
 using Plots
@@ -15,8 +18,8 @@ function _plot(result)
     for k = result
         arr[k[2]+1] = k[1]
     end
-    plt = (plot([arr], label="Maximal Pearson correlation for key"))
-    png(plt, "cpa_hamming_compare_all_keys_noise_8.png")
+    plt = plot([arr], label="Maximal ρ for key at any timepoint", xlabel="Key candidate", ylabel="Correlation ρ")
+    png(plt, "cpa_hamming_compare_all_keys_noise_45.png")
     display(plt)
 end
 
@@ -29,15 +32,20 @@ function sample_power_trace(key, input, reduce_function)
     coll
 end
 
-# Sample Hypothesis function:
-#function hypothesis(plaintext, key_guess_index, key_guess)::UInt8
-#    return Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-#end
+"""
+    CPA_AES_analyze(sample_function, power_estimate)
 
-# Sample function must take an AES input MVector{16, UInt8} and return an array of Integers
-# We expect:
-# - sample_function: Takes an input and returns a power trace for this input
-# - power_estimate: Takes a plaintext, a key index, and a key guess and returns an hypothesis of power consumption on a specific timepoint
+Performs a CPA attack against AES, where traces are collected from a specified function.
+
+# Arguments
+- `sample_function`: single-argument function that takes an input AES input (`MVector{16, UInt8}`) and returns a power trace as an array of numbers for this input.
+- `power_estimate`: a function returning an estimate for power consumption, given a plaintext, and a key guess at the position `key_guess_index`. The signature should be compatible to `hypothesis(plaintext::MVector{16, UInt8, key_guess_index::Int, key_guess::Int)`
+   For example, a classical implementation of this function for AES with Hamming weight would be
+   ```julia
+   power_estimate(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
+   ```
+
+"""
 function CPA_AES_analyze(sample_function, power_estimate)
     # choose random plaintexts.
     plaintexts = [MVector{16}(rand(UInt8, 16)) for _=1:2^10]
@@ -47,8 +55,6 @@ function CPA_AES_analyze(sample_function, power_estimate)
     for x = 1:length(plaintexts)
         traces[:,x] = sample_function(plaintexts[x])
     end
-
-
     CPA_AES_analyze_traces(plaintexts, traces, power_estimate)
 
 end
@@ -57,16 +63,16 @@ end
 """
     CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estimate)
 
-Returns the most likely key used during an AES encryption of the inputs in `plaintexts`, where each input produced a power trace from `traces`.
+Performs a CPA attack against AES on given traces.
 
 # Arguments
-- `plaintexts`: A Vector of size `N`, where `N` is the number of power traces sampled.
-- `traces`: A Matrix of size `M * N`, where `M` is the number of samples per trace.
- Power traces are stored in column-major order, i.e. it is expected that `traces[i,:]` refers
- to the powertrace generated with `plaintexts[i]`
-- power_estimate: A function that takes a `plaintext::MVector{16, UInt6}`, a key index (1 <= `key_guess_index` <= 16), and a key guess (0 <= `key_guess` <= 255) and returns an hypothesis of power consumption
-    For example, a power estimator that simply takes Hamming Weight into account would look like this:
-    ```power_estimate(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
+- `plaintexts`: A vector of size `N`, where `N` is the number of power traces sampled.
+- `traces`: A matrix of size `M * N`, where `M` is the number of samples per trace. Power traces are stored in column-major order, i.e. it is expected that `traces[i,:]` refers to the powertrace generated with `plaintexts[i]`
+- `power_estimate`: A function that takes a `plaintext::MVector{16, UInt6}`, a key index (1 <= `key_guess_index` <= 16), and a key guess (0 <= `key_guess` <= 255) and returns an hypothesis on power consumption.
+    For example, a classical implementation of this function for AES with Hamming weight would be
+    ```
+    power_estimate(plaintext, key_guess_index, key_guess) =
+        Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
     ```
 """
 function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estimate)
@@ -79,8 +85,6 @@ function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estima
 
     for idx = 1:16
         keyGuesses = []
-        rightcorplt = []
-        wrongcorplt = []
         for k::UInt8 = 0x0:0xFF
             for plaintext::UInt = 1:length(plaintexts)
                 # Hypothesis under key k (at position idx)
@@ -105,22 +109,168 @@ function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estima
     end
     completeKey = convert(Vector{UInt8}, completeKey)
     return completeKey
-
 end
 
 
-using Distributions
-function test_hamming_noise()
-    test_key = (hex2bytes("012788e0999ec84cbeb959cffeaaf2e7"))
-    d = Distributions.Normal(0, 4)
-    sample_function(x) = CPA.sample_power_trace(test_key, x, x -> Base.count_ones(x) + rand(d))
-    hypothesis(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-    recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
-#        recovered_key
-end
-#    test_hamming_noise()
 
 include("nsf_iucrc/UnmaskedAttack.jl")
 
+"""
+    sample_SPECK_power_trace(key, input, reduce_function)
+
+Collects a power trace of SPECK with a given key of type `(UInt64, UInt64)` and input of type `(UInt64, UInt64)`. The resulting power trace is reduced with `reduce_function`.
+"""
+function sample_SPECK_power_trace(key::Tuple{T, T}, input::Tuple{T, T}, reduce_function) where T
+    global coll = []
+    closure = () -> coll
+    key = map(x -> Logging.SingleFunctionLog(x, closure, reduce_function), key)
+    input = map(x -> Logging.SingleFunctionLog(x, closure, reduce_function), input)
+    SPECK.SPECK_encrypt(input, key)
+    coll
+end
+
+
+function CPA_SPECK_power_right_key(pt::Tuple{T, T}, key_guess_index::Int, key_guess) where T
+    temp         = Base.bitrotate(pt[1], -8)
+    p1           = temp + pt[2]
+    intermediate = (p1 >> (key_guess_index * 8)) & 255
+    intermediate ⊻= key_guess
+    return Base.count_ones(intermediate)
+end
+function CPA_SPECK_power_round_key(pt::Tuple{T, T}, k2, key_guess_index::Int, key_guess) where T
+    temp         = Base.bitrotate(pt[1], -8)
+    p1           = temp + pt[2]
+    r1           = p1 ⊻ k2
+    temp         = Base.bitrotate(pt[2], 3)
+    s1           = temp ⊻ r1
+    temp         = Base.bitrotate(r1, -8)
+    p2           = temp + s1
+    intermediate = (p2 >> (key_guess_index * 8)) & 255
+    intermediate ⊻= key_guess
+    return Base.count_ones(intermediate)
+end
+
+@doc raw"""
+    CPA_SPECK_analyze(sample_function)
+
+Performs a CPA attack against SPECK.
+
+# Arguments
+- `sample_function`: a single-argument function that takes a SPECK input (`Tuple{UInt64, UInt64}`) and returns a power trace (array of numbers) for this input.
+- `N`: the amount of traces to collect
+
+# Returns
+The reconstructed SPECK key as a `Tuple{UInt64, UInt64}`
+"""
+function CPA_SPECK_analyze(sample_function; N = 2^11)
+    # choose random plaintexts.
+    plaintexts = [(rand(UInt64), rand(UInt64)) for _=1:N]
+
+    # traces are stored column major: at position traces[:,i] the i-th trace is stored
+    traces = zeros(length(sample_function(plaintexts[1])), length(plaintexts))
+    for x = 1:length(plaintexts)
+        traces[:,x] = sample_function(plaintexts[x])
+    end
+    CPA_SPECK_analyze_traces(plaintexts, traces)
+
+end
+
+"""
+    CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
+
+Perform a CPA attack against SPECK on the provided traces.
+
+# Arguments
+- `plaintexts`: A Vector of size `N`, where `N` is the number of power traces sampled.
+- `traces`: A Matrix of size `M * N`, where `M` is the number of samples per trace.
+ Power traces are stored in column-major order, i.e. it is expected that `traces[i,:]` refers
+ to the powertrace generated with `plaintexts[i]`
+
+# Returns
+The reconstructed SPECK key as a `Tuple{UInt64, UInt64}`
+"""
+function CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
+    @assert size(plaintexts, 1) == size(traces, 2)
+
+    # Hypothesis of power consumption under specific guess
+    hypo = zeros(length(plaintexts))
+
+    completeKey = []
+    # Right half key
+    for idx = 0:7
+        keyGuesses = []
+        for k::UInt8 = 0x01:0xFF
+            for plaintext::UInt = 1:length(plaintexts)
+                # Hypothesis under key k (at position idx)
+                hypo[plaintext] = CPA_SPECK_power_right_key(plaintexts[plaintext], idx, k)
+            end
+            best_corr = 0.0
+            corr = Statistics.cor(hypo, traces, dims=2)
+            best_corr = maximum((corr))
+            push!(keyGuesses, (best_corr, k))
+        end
+
+        #plt = plot(1:255, x -> keyGuesses[x][1], xlabel="Key candidate", ylabel="Maximal correlation ρ", label="")
+        #display(plt)
+        #savefig("cpa_speck_key_candidates.png")
+        sort!(keyGuesses, rev=true)
+        push!(completeKey, keyGuesses[1][2])
+        println("[Right key] Best: $(string(keyGuesses[1][2], base=16)) correlates $(keyGuesses[1][1]). Snd: $(string(keyGuesses[2][2], base=16)) correlates $(keyGuesses[2][1])")
+
+        #_plot(keyGuesses)
+
+    end
+    rightKey = zero(UInt64)
+    for x = Iterators.reverse(completeKey)
+        rightKey <<= 8
+        rightKey |= x
+    end
+    println("Reconstructed right key = $(string(rightKey, base=16))")
+
+    ## Reconstruct round key used for SPECK
+    completeKey = []
+
+    for idx = 0:7
+        keyGuesses = []
+        for k::UInt8 = 0x01:0xFF
+            for plaintext::UInt = 1:length(plaintexts)
+                # Hypothesis under key k (at position idx)
+                hypo[plaintext] = CPA_SPECK_power_round_key(plaintexts[plaintext], rightKey, idx, k)
+            end
+            best_corr = 0.0
+            corr = Statistics.cor(hypo, traces, dims=2)
+            best_corr = maximum((corr))
+            push!(keyGuesses, (best_corr, k))
+        end
+
+        #plt = plot(1:255, x -> keyGuesses[x][1], xlabel="Key candidate", ylabel="Maximal correlation ρ", label="")
+        #display(plt)
+        #savefig("cpa_speck_key_candidates.png")
+        sort!(keyGuesses, rev=true)
+        push!(completeKey, keyGuesses[1][2])
+        println("[Round Key] Best: $(string(keyGuesses[1][2], base=16)) correlates $(keyGuesses[1][1]). Snd: $(string(keyGuesses[2][2], base=16)) correlates $(keyGuesses[2][1])")
+
+        #_plot(keyGuesses)
+
+    end
+
+    roundKey = zero(UInt64)
+    for x = Iterators.reverse(completeKey)
+        roundKey <<= 8
+        roundKey |= x
+    end
+
+    println("Reconstructed round key = $(string(roundKey, base=16))")
+
+    ## Reconstruct original key from right and round key:
+    T1 = roundKey ⊻ Base.bitrotate(rightKey, 3)
+    T2 = T1 - rightKey
+    leftKey = Base.bitrotate(T2, 8)
+
+    println("Reconstructed left key = $(string(leftKey, base=16))")
+    println("SPECK key $(string(leftKey, base=16)) $(string(rightKey, base=16))")
+
+    return (leftKey, rightKey)
+end
 end
 

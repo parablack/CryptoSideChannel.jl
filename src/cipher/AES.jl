@@ -94,7 +94,7 @@ end
 rcon(i::Integer) = [c_rcon[i],0x0,0x0,0x0]
 
 """
-    key_expand(k::Vector{T})
+    key_expand(k::Vector{T})::Vector{T}
 
 Compute the [AES key schedule](https://en.wikipedia.org/wiki/AES_key_schedule)
 
@@ -225,7 +225,6 @@ end
 Encrypt a block of 16 bytes with AES.
 
 `T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref integer_types).
-    TODO references to the relevant types chapter.
 
 # Arguments
 - `plaintext` must be a mutable, statically sized Vector of length 16. It contains the text to encrypt.
@@ -263,7 +262,6 @@ end
 Decrypt a block of 16 bytes with AES.
 
 `T` must behave similarly to `UInt8`. For instantiating `T` with logging or protecting types, see the article on [Integer Types](@ref integer_types).
-    TODO references to the relevant types chapter.
 
 # Arguments
 - `ciphertext` must be a mutable, statically sized Vector of length 16. It contains the data to decrypt.

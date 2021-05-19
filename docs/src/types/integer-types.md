@@ -20,22 +20,22 @@ true
 ```
 
 ## Custom Integer Types
-A main goal of this library is to provide new types that _behave similarly_ to integers, but include custom functionality. Those types are constructed using a [duck typing](https://en.wikipedia.org/wiki/Duck_typing) approach:
+An important goal of this library is to provide new types that _behave similarly_ to integers, but include custom functionality. Those types are constructed using a [duck typing](https://en.wikipedia.org/wiki/Duck_typing) approach:
 > If it walks like a duck and it quacks like a duck, then it must be a duck
 
-Thus, our newly created types will not be of type `Integer`, but instead only _behave_ like integers in certain contexts. A detailed discussion on the problems of creating new subtypes of `Integer` can be found in [this section](@ref int_subclass).
+Thus, our newly created types will not be a subtype of `Integer`, but instead only _behave_ like integers in certain contexts. A detailed discussion on this choice can be found in [this section](@ref int_subclass).
 
-Technically, a definition of a very simple custom Integer type could look as follows:
+Technically, a definition of a very simple custom integer type could look as follows:
 ```julia
-struct MyInt <: Integer
+struct MyInt
     value::Int
 end
 ```
 
-Now, using Julia's powerful multiple dispatch, we can start defining methods on our custom integer. For example, addition could be defined in the following way:
+Now, using Julia's powerful multiple dispatch functionality, we can start defining methods on our custom integer. For example, addition could be defined in the following way:
 ```julia
 function Base.:(+)(a::MyInt, b::MyInt)
-    # additional code (if desired) here
+    # custom code (if desired) here
     MyInt(a.value + b.value)
 end
 ```
@@ -43,11 +43,11 @@ end
 Since we want our type to be compatible with normal integers, it is also necessary to define the following two procedures:
 ```julia
 function Base.:(+)(a::MyInt, b::Integer)
-    # additional code
+    # custom code (if desired) here
     MyInt(a.value + b)
 end
 function Base.:(+)(a::Integer, b::MyInt)
-    # additional code
+    # custom code (if desired) here
     MyInt(a + b.value)
 end
 ```
@@ -68,7 +68,7 @@ function Base.:(+)(a::Integer, b::MyInt)
 end
 ```
 
-Now, all three procedures have the exact same body. Hence, we can subsume all three procedures using a for-loop in metaprogramming:
+Now, all three procedures have the exact same body. Hence, we can subsume all three procedures by using Julia's metaprogramming:
 ```julia
 for type = ((:MyInt, :MyInt), (:MyInt, :Integer), (:Integer, :MyInt))
     eval(quote
@@ -79,8 +79,9 @@ for type = ((:MyInt, :MyInt), (:MyInt, :Integer), (:Integer, :MyInt))
     end)
 end
 ```
+Here, the outer `for`-loop is evaluated at compile time. Thus, three new methods are registered by evaluating the generated function body.
 
-Now, we want to add generic other operatoros. We can achieve this by also iterating over all (binary) operators that we want to define:
+Of course, we like to extend this construction to other operators. We can achieve this by metaprogramming as well. Here, we iterate over all (binary) operators that we want to define in another `for`-loop:
 ```julia
 for op = (:+, :*, :-, :div, :mod)
     for type = ((:MyInt, :MyInt), (:MyInt, :Integer), (:Integer, :MyInt))
@@ -93,7 +94,7 @@ for op = (:+, :*, :-, :div, :mod)
 end
 ```
 
-In a similar way, we can implement all essential integer functionality described in [the Julia documentation](https://docs.julialang.org/en/v1/manual/mathematical-operations/). In our case, this includes the methods relevant to cryptographic operations, including
+Similarly, we can implement all essential integer functionality described in [the Julia documentation](https://docs.julialang.org/en/v1/manual/mathematical-operations/). In our case, this includes the methods relevant to cryptographic operations, including
 * Arithmetic
 * Bitwise Operators
 * Comparison
@@ -103,10 +104,9 @@ In a similar way, we can implement all essential integer functionality described
 Note that with the approach outlined above, other methods can be extended even by third-party modules. See the sections on [Extending the `GenericLog` type](@ref extending_log_funs) and [Extending the `Masked` type](@ref extending_masking_funs) for more details.
 
 ## [Subclass of `Integer`](@id int_subclass)
-TODO text Discuss why this may be a bad idea.
+A canonical question to ask is whether the new `MyInt` type should be a subtype of `Integer`. At first glance, this would seem like the right choice. However, establishing this subtype relationship poses some issues:
 
-
-The following piece of code works:
+First, multiple dispatch only works when no ambiguities in method dispatch are present. However, if multiple arguments are passed to a function, subtyping in more than one argument may introduce ambiguities. Consider the following piece of code which runs without an error:
 ```julia
 struct MyInt
     value::Int
@@ -122,8 +122,7 @@ i = MyInt(2)
 v[i]
 ```
 
-
-The following code produces an error. The single difference to above is the declaration `MyInt <: Integer`:
+Now, consider the next block of code: The only difference to above is the declaration `MyInt <: Integer`:
 ```julia
 struct MyInt <: Integer
     value::Int
@@ -139,6 +138,7 @@ i = MyInt(2)
 v[i]
 ```
 
+However, this second block produces an error on execution:
 ```
 ERROR: LoadError: MethodError: getindex(::Vector{Int64}, ::MyInt) is ambiguous. Candidates:
   getindex(v::AbstractArray, i::MyInt) in Main at [...]
@@ -148,8 +148,11 @@ Possible fix, define
   getindex(::Array, ::MyInt)
 ```
 
-## Methods available for logging
-Exhaustive list? TODO
-```@docs
-Base.abs(::GenericLog)
-```
+To fix this issue, more concrete method signatures have to be defined.
+In the example above, since `Array <: AbstractArray`, we must define another method `getindex(::Array, ::MyInt)`. However, it is not sufficient to define this single method, but a corresponding method must be defined for every subtype of `AbstractArray`.
+However, this process cannot be completed at compile-time, since new subtypes may be added dynamically. For example,  the `StaticArrays` package provides a type `StaticArray{...} <: AbstractArray{...}`.
+Hence, declaring our new type as a subtype of `Integer` requires additional method declarations that may be not even known at compile-time.
+
+Another argument against subtyping the `Integer` is the plurality of abstract integer types: One benefit of subtyping is compatibility to code that restricts arguments to `Integer` types. In this code, type annotations do not need to be changed to work with this framework. However, many projects restrict function arguments to, for example, `Signed` or `Unsigned`. Thus, those types have to be manually exchanged again.
+
+Following the two arguments outlined above, we will not use subtypes of `Integer` throughout this project. Instead, our type declarations will not have any specific supertype.

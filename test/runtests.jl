@@ -29,8 +29,12 @@ end
 # include("DPA-test.jl")
 # end
 
-# @safetestset "CPA unit tests" begin
-# include("CPA-test.jl")
+# @safetestset "CPA/AES unit tests" begin
+# include("CPA-AES-test.jl")
+# end
+
+# @safetestset "CPA/SPECK unit tests" begin
+# include("CPA-SPECK-test.jl")
 # end
 
 # @safetestset "Template attack unit tests" begin

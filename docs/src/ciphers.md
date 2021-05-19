@@ -10,7 +10,7 @@ CurrentModule = CryptoSideChannel.AES
 
 The following two methods provide a basic interface for encrypting and decrypting. Both methods are parametrised over the underlying type for the computations.
 
-For simply using AES, one would instantiate `T` as `UInt8`. For more advanced settings that log traces or use masking, refer to the respective chapters.  TODO references
+For simply using AES, one would instantiate `T` as `UInt8`. For more advanced settings that log traces or use masking, refer to the respective chapters.  
 
 ```@docs
 AES_encrypt
