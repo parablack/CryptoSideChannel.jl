@@ -226,8 +226,19 @@ function Base.show(io::IO, a::GenericLog{A, B, T}) where {A, B, T}
     print(io, "Log{$(T), $(extractValue(a))}")
 end
 
+Base.length(::GenericLog) = 1
+Base.iterate(x::GenericLog) = (x, nothing)
+Base.iterate(x::GenericLog, _) = nothing
+
 Base.rand(::MersenneTwister, ::Type{GenericLog{U,S,T}}) where {U,S,T} = GenericLog{U,S,T}(rand(T))
 
 Base.convert(::Type{GenericLog{U, S, Tnew}}, x::GenericLog{U, S, Told}) where {U, S, Tnew, Told} = GenericLog{U, S, Tnew}(convert(Tnew, extractValue(x)))
+
+# Colon operator:
+Base.convert(::Type{GenericLog{U, S, T}}, x::T) where {U,S,T} = GenericLog{U,S,T}(x)
+Base.zero(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(0)
+Base.one(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(1)
+
+# Base.convert(::Type{GenericLog{U, S, Tnew}}, x::GenericLog{U, S, Told}) where {U, S, Tnew, Told} = GenericLog{U, S, Tnew}(convert(Tnew, extractValue(x)))
 
 end

@@ -24,6 +24,10 @@ end
 include("SPECK-test.jl")
 end
 
+@safetestset "faf0/AES integration tests" begin
+include("aes-faf0/test.jl")
+end
+
 # Expensive tests: Comment out if testing is wished.
 # @safetestset "DPA unit tests" begin
 # include("DPA-test.jl")

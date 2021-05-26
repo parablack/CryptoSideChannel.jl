@@ -193,10 +193,15 @@ Base.hash(a::Masked) = 0
 Base.:(==)(a::Masked{Arithmetic}, b::Masked{Boolean}) = arithmeticToBoolean(a) == b
 Base.:(==)(a::Masked{Boolean}, b::Masked{Arithmetic}) = a == arithmeticToBoolean(b)
 
+Base.length(::Masked) = 1
 
 Base.rand(::MersenneTwister, ::Type{Masked{Arithmetic,T,U}}) where {T,U} = ArithmeticMask(rand(T))
 Base.rand(::MersenneTwister, ::Type{Masked{Boolean,T,U}}) where {T,U} = BooleanMask(rand(T))
 
+Base.convert(::Type{Masked{Arithmetic,T,U}}, x::T) where {U,T} = ArithmeticMask(x)
+Base.convert(::Type{Masked{Boolean,T,U}}, x::T) where {U,T} = BooleanMask(x)
+Base.zero(::Masked{M,T,U}) where {M,T,U} = BooleanMask(0)
+Base.one(::Masked{M,T,U}) where {M,T,U} = BooleanMask(1)
 
 function Base.show(io::IO, a::Masked{U, T1, T2}) where {U, T1, T2}
     op = U == Boolean ? "⊻" : "+"
