@@ -33,41 +33,58 @@ function sample_power_trace(key, input, reduce_function)
 end
 
 """
-    CPA_AES_analyze(sample_function, power_estimate)
+    CPA_AES_analyze(sample_function, leakage_model)
 
 Performs a CPA attack against AES, where traces are collected from a specified function.
 
 # Arguments
 - `sample_function`: single-argument function that takes an input AES input (`MVector{16, UInt8}`) and returns a power trace as an array of numbers for this input.
-- `power_estimate`: a function returning an estimate for power consumption, given a plaintext, and a key guess at the position `key_guess_index`. The signature should be compatible to `hypothesis(plaintext::MVector{16, UInt8, key_guess_index::Int, key_guess::Int)`
-   For example, a classical implementation of this function for AES with Hamming weight would be
-   ```julia
-   power_estimate(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-   ```
+- `leakage_model`: a function reducing a processed value ``R`` to their estimated side-channel emissions ``W_R``
 
+# Returns
+The recovered AES key
 """
-function CPA_AES_analyze(sample_function, power_estimate)
+function CPA_AES_analyze(sample_function, leakage_model; N = 2^12)
     # choose random plaintexts.
-    plaintexts = [MVector{16}(rand(UInt8, 16)) for _=1:2^10]
+    plaintexts = [MVector{16}(rand(UInt8, 16)) for _=1:N]
 
     # traces are stored column major: at position traces[:,i] the i-th trace is stored
     traces = zeros(length(sample_function(plaintexts[1])), length(plaintexts))
     for x = 1:length(plaintexts)
         traces[:,x] = sample_function(plaintexts[x])
     end
-    CPA_AES_analyze_traces(plaintexts, traces, power_estimate)
+    CPA_AES_analyze_traces(plaintexts, traces, leakage_model)
 
 end
 
-
 """
-    CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estimate)
+    CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, leakage_model)
 
 Performs a CPA attack against AES on given traces.
 
 # Arguments
 - `plaintexts`: A vector of size `N`, where `N` is the number of power traces sampled.
-- `traces`: A matrix of size `M * N`, where `M` is the number of samples per trace. Power traces are stored in column-major order, i.e. it is expected that `traces[i,:]` refers to the powertrace generated with `plaintexts[i]`
+- `traces`: A matrix of size `M * N`, where `M` is the number of samples per trace. Power traces are stored in column-major order, i.e. it is expected that `traces[:,i]` refers to the powertrace generated with `plaintexts[i]`
+- `leakage_model`: a function reducing a processed value ``R`` to their estimated side-channel emissions ``W_R``
+
+# Returns
+The recovered AES key
+"""
+function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, leakage_model)
+    # target the first S-Box output:
+    power_estimate(plaintext, key_guess_index, key_guess) = leakage_model(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
+
+    CPA_AES_analyze_manual(plaintexts, traces, power_estimate)
+end
+
+"""
+    CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, power_estimate)
+
+Performs a CPA attack against AES on given traces.
+
+# Arguments
+- `plaintexts`: A vector of size `N`, where `N` is the number of power traces sampled.
+- `traces`: A matrix of size `M * N`, where `M` is the number of samples per trace. Power traces are stored in column-major order, i.e. it is expected that `traces[:,i]` refers to the powertrace generated with `plaintexts[i]`
 - `power_estimate`: A function that takes a `plaintext::MVector{16, UInt6}`, a key index (1 <= `key_guess_index` <= 16), and a key guess (0 <= `key_guess` <= 255) and returns an hypothesis on power consumption.
     For example, a classical implementation of this function for AES with Hamming weight would be
     ```
@@ -75,11 +92,14 @@ Performs a CPA attack against AES on given traces.
         Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
     ```
 """
-function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estimate)
+function CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, power_estimate)
     @assert size(plaintexts, 1) == size(traces, 2)
 
     # Hypothesis of power consumption under specific guess
     hypo = zeros(length(plaintexts))
+
+    #aespower_estimate(plaintext, key_guess_index, key_guess) =
+    #    power_estimate(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
 
     completeKey = []
 
@@ -92,7 +112,7 @@ function CPA_AES_analyze_traces(plaintexts::Vector, traces::Matrix, power_estima
             end
             best_corr = 0.0
             corr = Statistics.cor(hypo, traces, dims=2)
-            best_corr = maximum(abs.(corr))
+            best_corr = maximum(abs.(filter(!isnan, corr)))
             push!(keyGuesses, (best_corr, k))
         end
 #            if idx == 1
@@ -130,14 +150,14 @@ function sample_SPECK_power_trace(key::Tuple{T, T}, input::Tuple{T, T}, reduce_f
 end
 
 
-function CPA_SPECK_power_right_key(pt::Tuple{T, T}, key_guess_index::Int, key_guess) where T
+function CPA_SPECK_power_right_key(pt::Tuple{T, T}, key_guess_index::Int, key_guess, leakage_model) where T
     temp         = Base.bitrotate(pt[1], -8)
     p1           = temp + pt[2]
     intermediate = (p1 >> (key_guess_index * 8)) & 255
     intermediate ⊻= key_guess
-    return Base.count_ones(intermediate)
+    return leakage_model(intermediate)
 end
-function CPA_SPECK_power_round_key(pt::Tuple{T, T}, k2, key_guess_index::Int, key_guess) where T
+function CPA_SPECK_power_round_key(pt::Tuple{T, T}, k2, key_guess_index::Int, key_guess, leakage_model) where T
     temp         = Base.bitrotate(pt[1], -8)
     p1           = temp + pt[2]
     r1           = p1 ⊻ k2
@@ -147,7 +167,7 @@ function CPA_SPECK_power_round_key(pt::Tuple{T, T}, k2, key_guess_index::Int, ke
     p2           = temp + s1
     intermediate = (p2 >> (key_guess_index * 8)) & 255
     intermediate ⊻= key_guess
-    return Base.count_ones(intermediate)
+    return leakage_model(intermediate)
 end
 
 @doc raw"""
@@ -157,12 +177,13 @@ Performs a CPA attack against SPECK.
 
 # Arguments
 - `sample_function`: a single-argument function that takes a SPECK input (`Tuple{UInt64, UInt64}`) and returns a power trace (array of numbers) for this input.
+- `leakage_model`: a function reducing a processed value ``R`` to their estimated side-channel emissions ``W_R``
 - `N`: the amount of traces to collect
 
 # Returns
 The reconstructed SPECK key as a `Tuple{UInt64, UInt64}`
 """
-function CPA_SPECK_analyze(sample_function; N = 2^11)
+function CPA_SPECK_analyze(sample_function, leakage_model; N = 2^12)
     # choose random plaintexts.
     plaintexts = [(rand(UInt64), rand(UInt64)) for _=1:N]
 
@@ -171,12 +192,12 @@ function CPA_SPECK_analyze(sample_function; N = 2^11)
     for x = 1:length(plaintexts)
         traces[:,x] = sample_function(plaintexts[x])
     end
-    CPA_SPECK_analyze_traces(plaintexts, traces)
+    CPA_SPECK_analyze_traces(plaintexts, traces, leakage_model)
 
 end
 
 """
-    CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
+    CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix, leakage_model)
 
 Perform a CPA attack against SPECK on the provided traces.
 
@@ -185,11 +206,12 @@ Perform a CPA attack against SPECK on the provided traces.
 - `traces`: A Matrix of size `M * N`, where `M` is the number of samples per trace.
  Power traces are stored in column-major order, i.e. it is expected that `traces[i,:]` refers
  to the powertrace generated with `plaintexts[i]`
+- `leakage_model`: a function reducing a processed value ``R`` to their estimated side-channel emissions ``W_R``
 
 # Returns
 The reconstructed SPECK key as a `Tuple{UInt64, UInt64}`
 """
-function CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
+function CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix, leakage_model)
     @assert size(plaintexts, 1) == size(traces, 2)
 
     # Hypothesis of power consumption under specific guess
@@ -202,7 +224,7 @@ function CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
         for k::UInt8 = 0x01:0xFF
             for plaintext::UInt = 1:length(plaintexts)
                 # Hypothesis under key k (at position idx)
-                hypo[plaintext] = CPA_SPECK_power_right_key(plaintexts[plaintext], idx, k)
+                hypo[plaintext] = CPA_SPECK_power_right_key(plaintexts[plaintext], idx, k, leakage_model)
             end
             best_corr = 0.0
             corr = Statistics.cor(hypo, traces, dims=2)
@@ -235,7 +257,7 @@ function CPA_SPECK_analyze_traces(plaintexts::Vector, traces::Matrix)
         for k::UInt8 = 0x01:0xFF
             for plaintext::UInt = 1:length(plaintexts)
                 # Hypothesis under key k (at position idx)
-                hypo[plaintext] = CPA_SPECK_power_round_key(plaintexts[plaintext], rightKey, idx, k)
+                hypo[plaintext] = CPA_SPECK_power_round_key(plaintexts[plaintext], rightKey, idx, k, leakage_model)
             end
             best_corr = 0.0
             corr = Statistics.cor(hypo, traces, dims=2)

@@ -21,12 +21,12 @@ end
 random_template_values(noise, num_values) = SVector{num_values}([rand(noise) for _ in 1:num_values])
 
 """
-    random_uncorrelated_template(dimensions::Integer, max_value::Integer)
+    random_uncorrelated_templates(dimensions::Integer, max_value::Integer)
 
 Generate a random template over `d` dimensions, that supports operations on integers between \$0\$ and `max_value`.
 """
-function random_uncorrelated_template(dimensions::Integer, max_value::Integer)
+function random_uncorrelated_templates(dimensions::Integer, max_value::Integer)
     rng = random_diagonal_multivariate_distribution(dimensions)
-    template = random_template_values(rng, max_value)
-    Template(rng, template)
+    templates = random_template_values(rng, max_value)
+    Templates(rng, templates)
 end

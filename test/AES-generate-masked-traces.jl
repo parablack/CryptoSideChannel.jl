@@ -1,24 +1,28 @@
 using CryptoSideChannel, Test, StaticArrays
 using Distributions
+using CryptoSideChannel.Logging
+using CryptoSideChannel.Masking
 
 
-key = hex2bytes("426f9faa05e9a343bf67bdc9e3a3f5c0")
+SECRET_KEY = hex2bytes("426f9faa05e9a343bf67bdc9e3a3f5c0")
 nrOfTraces  = 1
 
 coll = []
 
-function encrypt_log_trace(pt::MVector{16, UInt8})
+function encrypt_log_trace(plaintext::MVector{16, UInt8})
     global coll
-    global key
     coll = []
     clos = () -> coll
 
-    reduce_function = x -> Base.count_ones(x)
+    reduction_function = x -> Base.count_ones(x)
 
-    kl = map(x -> Masking.BooleanMask(Logging.SingleFunctionLog(x, clos, reduce_function)), key)
-    ptl = map(x -> Masking.BooleanMask(Logging.SingleFunctionLog(x, clos, reduce_function)), pt)
+    key_log = GenericLog.(SECRET_KEY, clos, reduction_function)
+    pt_log  = GenericLog.(plaintext, clos, reduction_function)
 
-    output = (Logging.extractValue ∘ Masking.unmask).(AES.AES_encrypt(ptl, kl))
+    key_masked = BooleanMask.(key_log)
+    pt_masked = BooleanMask.(pt_log)
+
+    output = (Logging.extractValue ∘ Masking.unmask).(AES.AES_encrypt(pt_masked, key_masked))
 
     return (output, copy(coll))
 end

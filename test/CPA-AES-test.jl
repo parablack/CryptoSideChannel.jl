@@ -6,8 +6,7 @@ using Distributions
 function test_hamming_weight()
     test_key = (hex2bytes("41112233445566778899aabbccddeeff"))
     sample_function(x) = CPA.sample_power_trace(test_key, x, Base.count_ones)
-    hypothesis(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-    recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
+    recovered_key = CPA.CPA_AES_analyze(sample_function, Base.count_ones)
 
     @test test_key == recovered_key
 end
@@ -15,16 +14,14 @@ end
 function test_lsb()
     test_key = (hex2bytes("63f5f4aa80c2c61ae31e8ab9df24ebd4"))
     sample_function(x) = CPA.sample_power_trace(test_key, x, x -> (x) & 1)
-    hypothesis(plaintext, key_guess_index, key_guess) = 0x1 & (AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-    recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
+    recovered_key = CPA.CPA_AES_analyze(sample_function, x -> x & 0x1)
     @test test_key == recovered_key
 end
 
 function test_msb()
     test_key = (hex2bytes("ab7a2656ee8e4cb06b6cb98df814c6f6"))
     sample_function(x) = CPA.sample_power_trace(test_key, x, x -> (x>>>7) & 1)
-    hypothesis(plaintext, key_guess_index, key_guess) = 0x1 & ((AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1]) >>> 7)
-    recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
+    recovered_key = CPA.CPA_AES_analyze(sample_function, x -> (x >>> 7) & 1)
     @test test_key == recovered_key
 end
 
@@ -33,10 +30,7 @@ function test_hamming_noise()
     d = Distributions.Normal(0, 3)
     sample_function(x) = CPA.sample_power_trace(test_key, x, x -> Base.count_ones(x) + rand(d))
 
-    # println(length(sample_function(MVector{16}(hex2bytes("042788e0999ec84cbeb959cffeaaf2e7")))))
-
-    hypothesis(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-    recovered_key = CPA.CPA_AES_analyze(sample_function, hypothesis)
+    recovered_key = CPA.CPA_AES_analyze(sample_function, Base.count_ones)
     @test test_key == recovered_key
 end
 

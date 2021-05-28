@@ -18,6 +18,7 @@ makedocs(sitename="CryptoSideChannel.jl",
                 "DPA" => "attacks/dpa.md",
                 "CPA" => "attacks/cpa.md",
                 "Template" => "attacks/template.md",
+                "Key combination" => "attacks/keycombination.md",
                 ]
         ],
     repo = "https://github.com/parablack/CryptoSideChannel.jl"

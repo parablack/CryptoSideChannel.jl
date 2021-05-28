@@ -15,6 +15,7 @@ Intros concept power estimation function. Some examples?
 ```@docs
 CPA_AES_analyze
 CPA_AES_analyze_traces
+CPA_AES_analyze_manual
 ```
 
 ## CPA attacks against SPECK

@@ -2,6 +2,9 @@
 This struct merges different key bytes for which probabilities are known to a whole key, by iterating first over keys that are more likely.
 
 Keys are stored as lists of lists, where the outer lists represent the respective key byte (i.e. the first list represents the first key byte). The inner lists must be sorted according to the probability of a specific byte occuring.
+    struct LikelyKey
+        keylist::Vector{Vector{Integer}}
+    end
 """
 struct LikelyKey
     keylist::Vector{Vector{Integer}}
@@ -11,7 +14,7 @@ end
     Base.iterate(k::LikelyKey)
     Base.iterate(k::LikelyKey, state::Stack{Int})
 
-Iterate over a LikelyKey. Keys that are more likely by the internal sorting of `k` will be iterated first.
+Iterate over a LikelyKey. Keys that are more likely by the internal sorting of `k` will be seen first.
 
 Internally, the current status of the iteration is represented by a stack. The contents of this stack are indices of the outer list. An occurence of a list index means that at this position in the key the next likely value should be tried.
 For example, a stack containing the following values:
@@ -36,7 +39,7 @@ Modifies the stack to the next larger state. All stacks that contain `n` element
 If results from this method are used with `iterate`, all lists will be iterated.
 
 # Internals
-If `s` has `n` elements, and there is a lexicographically larger stack with `n` elements, return a lexicographically larger stack corresponding to a new list (as descriped in [iterate](@ref)).
+If `s` has `n` elements, and there is a lexicographically larger stack with `n` elements, return a lexicographically larger stack corresponding to a new list (as described in `Base.iterate`).
 
 Otherwise, returns the lexicographically smallest stack with `n+1` elements.
 """
@@ -77,5 +80,16 @@ function Base.iterate(k::LikelyKey, state::Stack{Int})
     retList, state
 end
 
+"""
+    Base.length(k::LikelyKey)
+
+Returns the length of this iterator, which is the product of the length of all lists.
+"""
 Base.length(k::LikelyKey) = prod(map(length, k.keylist))
+
+"""
+    Base.eltype(k::LikelyKey)
+
+Returns the type of the elements that are iterated over. This is always a vector of key parts.
+"""
 Base.eltype(k::LikelyKey) = Vector{typeof(k.keylist[1][1])}

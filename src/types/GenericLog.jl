@@ -52,6 +52,7 @@ extractValue(a::GenericLog) = a.val
 extractValue(a::Integer) = a
 
 SingleFunctionLog(val, stream, f)  = GenericLog{SingleFunctionLog{f},stream,typeof(val)}(val)
+GenericLog(val, stream, f)  = GenericLog{SingleFunctionLog{f},stream,typeof(val)}(val)
 
 logValue(a::GenericLog{SingleFunctionLog{F}}) where F = F((extractValue)(a))
 
@@ -143,20 +144,25 @@ julia> trace
 """
 FullLog(val, stream)  = GenericLog{SingleFunctionLog{identity},stream,typeof(val)}(val)
 
+"""
+    function StochasticLog(val, stream, template_for_value, noise_for_value)
 
+Constructs a logging datatype that logs vectors.
+
+## Arguments
+- `val`: The value the logging datatype should hold.
+- `stream`: A closure to the array that should be logged to.
+- `mean_for_value` must be a function returning the vector ``\\mean{x}_m`` for a value ``m``.
+- `noise_for_value` is a function returning a `MvNormal` distribution with zero mean. This distribution represents the noise. For each value, a random vector is sampled from this noise and added to the respective mean.
+"""
 function StochasticLog(val, stream, template_for_value, noise_closure)
     intermediate_function = x -> template_for_value(x) + rand(noise_closure())
     @assert (isbitstype(typeof(intermediate_function)))
     GenericLog{SingleFunctionLog{intermediate_function}, stream, typeof(val)}(val)
 end
 
-
 for op = (:-, :~, :abs, :abs2, :sign)
     eval(quote
-"""
-    $($op)
-Arithmetic method, overloaded for `GenericLog`
-"""
         function Base.$op(a::GenericLog{U,S}) where {U,S}
             res = Base.$op(extractValue(a))
             result = GenericLog{U,S,typeof(res)}(res)
@@ -240,5 +246,7 @@ Base.zero(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(0)
 Base.one(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(1)
 
 # Base.convert(::Type{GenericLog{U, S, Tnew}}, x::GenericLog{U, S, Told}) where {U, S, Tnew, Told} = GenericLog{U, S, Tnew}(convert(Tnew, extractValue(x)))
+
+export GenericLog
 
 end

@@ -2,9 +2,9 @@ using CryptoSideChannel.TemplateAttacks, Test
 
 # Test simple template load (single byte)
 function single_template_load(secret)
-    template = random_uncorrelated_template(3, 256)
-    attack_vectors = generate_attack_vectors(template, secret, fun = single_load_instruction)
-    res = single_byte_template_attack(template, attack_vectors, fun = single_load_instruction)
+    templates = random_uncorrelated_templates(3, 256)
+    attack_vectors = generate_attack_vectors(templates, secret, fun = single_load_instruction)
+    res = single_byte_template_attack(templates, attack_vectors, fun = single_load_instruction)
     # 8 is probably reasonable
     flag = false
     for i = 1:8
@@ -25,17 +25,13 @@ function test_likely_key()
     end
 end
 
-function test_single_in_multi()
-    @test true
-end
-
 function multi_template_load(threshold)
     size = 4
-    template = random_uncorrelated_template(3, 256)
+    templates = random_uncorrelated_templates(3, 256)
     secret = [0x4, 0x42, 0xCA, 0xFA] # rand(UInt8, size)
-    attack_vectors = generate_attack_vectors(template, secret, fun = multi_load_instructions, N = 2^15)
+    attack_vectors = generate_attack_vectors(templates, secret, fun = multi_load_instructions, N = 2^15)
     ## res = single_byte_template_attack(template, attack_vectors, fun = single_load_instruction)
-    res = multi_byte_template_attack(template, attack_vectors, size, fun = multi_load_instructions, N = 2^15)
+    res = multi_byte_template_attack(templates, attack_vectors, size, fun = multi_load_instructions, N = 2^15)
     display(res)
     ct = 1
     for k = res

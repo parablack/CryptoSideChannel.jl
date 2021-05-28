@@ -208,4 +208,6 @@ function Base.show(io::IO, a::Masked{U, T1, T2}) where {U, T1, T2}
     print(io, "Masked{$U}($(unmask(a)) = $(a.val) $(op) $(a.mask))")
 end
 
+export ArithmeticMask, BooleanMask
+
 end

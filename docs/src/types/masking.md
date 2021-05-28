@@ -38,7 +38,7 @@ Essentially, all masking security guarantees rely on the fact that some intermed
 
 For example, consider the masked array lookup. Recall that for a table lookup ``Y = T[X]``, with ``X = A_X \oplus M_X`` a table ``T'`` with ``T'[X] = T[X \oplus M_X] \oplus M'_X`` is computed. Later on, the table is only accessed at index ``A_X``. Hence, a compiler may notice that all other fields of the table are never accessed, and may optimize the code in the final program to only compute ``T'[A_X] = T[A_X \oplus M_X] \oplus M'_X``. However, note that for computing the latter, ``A_X \oplus M_X`` appears as an intermediate result. Thus, this may allow conclusions about the unmasked value.
 
-The consequences of this issues is simple: This project is for academic, testing, and educational purposes only. Do not use the `Masked` datatype as a protection in a real-world system. Exploring ways to preserve masking through compiler optimisations in Julia could be done in future work.
+The consequences of this issues are simple: This project is for academic, testing, and educational purposes only. Do not use the `Masked` datatype as a protection in a real-world system. Exploring ways to preserve masking through compiler optimisations in Julia could be done in future work.
 
 ## [Defining new methods for `Masked` types](@id extending_masking_funs)
 It is possible to extend the provided methods for `Masked` types with custom methods.

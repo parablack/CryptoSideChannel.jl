@@ -31,7 +31,7 @@ function attack(; number_of_traces = 7000)
     @assert length(inputs) == size(traces, 2)
 
     @time begin
-    last_round_key = CPA.CPA_AES_analyze_traces(inputs, traces, hamming_distance_power_estimate)
+    last_round_key = CPA.CPA_AES_analyze_manual(inputs, traces, hamming_distance_power_estimate)
     aes_128_key = AES.inv_key_expand(last_round_key)[1:16]
     end
 
