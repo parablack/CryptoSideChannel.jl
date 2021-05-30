@@ -200,8 +200,8 @@ Base.rand(::MersenneTwister, ::Type{Masked{Boolean,T,U}}) where {T,U} = BooleanM
 
 Base.convert(::Type{Masked{Arithmetic,T,U}}, x::T) where {U,T} = ArithmeticMask(x)
 Base.convert(::Type{Masked{Boolean,T,U}}, x::T) where {U,T} = BooleanMask(x)
-Base.zero(::Masked{M,T,U}) where {M,T,U} = BooleanMask(0)
-Base.one(::Masked{M,T,U}) where {M,T,U} = BooleanMask(1)
+Base.zero(::Type{Masked{M,T,U}}) where {M,T,U} = BooleanMask(0)
+Base.one(::Type{Masked{M,T,U}}) where {M,T,U} = BooleanMask(1)
 
 function Base.show(io::IO, a::Masked{U, T1, T2}) where {U, T1, T2}
     op = U == Boolean ? "⊻" : "+"

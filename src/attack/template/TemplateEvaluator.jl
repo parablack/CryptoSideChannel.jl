@@ -56,6 +56,7 @@ function sample_function(template::Templates, fun, value)
     fun(log_value)
 
     vcat(__coll...)
+    #__coll
 end
 
 """

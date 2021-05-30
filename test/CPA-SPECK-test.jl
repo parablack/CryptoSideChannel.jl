@@ -11,7 +11,7 @@ function test_speck_hamming_weight(key)
     d = Distributions.Normal(0, 0.3)
 
     sample_fun = x -> CPA.sample_SPECK_power_trace(key, x, x -> Base.count_ones(x) + rand(d))
-    recovered_key = CPA.CPA_SPECK_analyze(sample_fun, Base.count_ones)
+    recovered_key = CPA.CPA_SPECK_analyze(sample_fun, Base.count_ones; N = 2^12)
 
     @test key == recovered_key
 end

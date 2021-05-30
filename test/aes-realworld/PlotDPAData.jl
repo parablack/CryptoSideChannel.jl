@@ -36,31 +36,3 @@ function attack(; number_of_traces = 7000)
     end
 
 end
-
-#    attack()
-
-#   using Statistics
-#   function perf_test()
-#       hypo = zeros(length(plaintexts))
-#
-#       completeKey = []
-#
-#       for idx = 1:1
-#           keyGuesses = []
-#           rightcorplt = []
-#           wrongcorplt = []
-#           for k::UInt8 = 0x0:0xFF
-#               for plaintext::UInt = 1:length(plaintexts)
-#                   # Hypothesis under key k (at position idx)
-#                   hypo[plaintext] = hd_power_estimate(plaintexts[plaintext], idx, k)
-#               end
-#               best_corr = 0.0
-#               corr = Statistics.cor(hypo, traces, dims=2)
-#               best_corr = maximum(abs.(corr))
-#               push!(keyGuesses, (best_corr, k))
-#           end
-#       end
-#   end
-
-# using Profile
-# @time perf_test()

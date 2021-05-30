@@ -105,20 +105,29 @@ function CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, power_estima
 
     for idx = 1:16
         keyGuesses = []
-        for k::UInt8 = 0x0:0xFF
+#        wrongcorplt = []
+#        rightcorplt = []
+        for k::UInt8 = 0x00:0xFF
             for plaintext::UInt = 1:length(plaintexts)
                 # Hypothesis under key k (at position idx)
                 hypo[plaintext] = power_estimate(plaintexts[plaintext], idx, k)
             end
             best_corr = 0.0
             corr = Statistics.cor(hypo, traces, dims=2)
+#            if idx == 1 && k == 0x13
+#                rightcorplt = copy(transpose(corr))
+#            end
+#            if idx == 1 && k == 0x42
+#                wrongcorplt = copy(transpose(corr))
+#            end
+
             best_corr = maximum(abs.(filter(!isnan, corr)))
             push!(keyGuesses, (best_corr, k))
         end
-#            if idx == 1
-#                plt = (plot([rightcorplt, wrongcorplt], label=["Pearson correlation for correct key" "Pearson correlation for wrong key"], xlabel="Time", ylabel="Pearson correlation coefficient"))
-#                png(plt, "cpa_hamming_max_corr_over_time.png")
-#            end
+#        if idx == 1
+#                plt = plot(eachindex(rightcorplt), [rightcorplt, wrongcorplt], label=["Correct key (k = 0x13)" "Incorrect key (k = 0x42)"], xlabel="Time", ylabel="Correlation ρ", yrange=(-0.115, 0.115))
+#                png(plt, "cpa_realworld_max_corr_over_time.png")
+#        end
         sort!(keyGuesses, rev=true)
         push!(completeKey, keyGuesses[1][2])
 
@@ -131,9 +140,6 @@ function CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, power_estima
     return completeKey
 end
 
-
-
-include("nsf_iucrc/UnmaskedAttack.jl")
 
 """
     sample_SPECK_power_trace(key, input, reduce_function)

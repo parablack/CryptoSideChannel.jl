@@ -1,5 +1,7 @@
 using Mmap
 
+FILE_NAME = "/gome/simon/Documents/Uni/cam/thesis/traces/e2_bat_fb_beta_raw_s_0_3071.raw"
+
 """
 The following structure is used:
 - nr_trials: The total number of traces collected
@@ -19,8 +21,7 @@ struct TLAttackMetadata
     nr_points::Int
 end
 
-fname = "/run/media/simon/D-Platte/Uni/e2_bat_fb_beta_raw_s_0_3071.raw"
-io = open(fname);
+io = open(FILE_NAME);
 
 bytesstart = position(io)
 
@@ -98,70 +99,3 @@ skip(io, sizeof(R))
 @assert eof(io)
 
 metadata = TLAttackMetadata(metadata_nr_trials, metadata_nr_groups, metadata_nr_bytes, metadata_nr_points)
-
-
-#rindex = view(map, 1:metadata_nr_bytes)
-#X = view(map, metadata_nr_bytes:metadata_nr_bytes + (metadata_nr_points * metadata_nr_trials))
-#B = view(map, 1:(metadata_nr_bytes * metadata_nr_trials))
-
-
-
-
-
-"""
-%% Read format
-fs = fread(fid, 1, 'uint8');
-metadata.format = char(fread(fid, fs, '*uchar')');
-for i=1:(7-fs)
-end
-
-%% Read rest of data based on format'
-
-elseif strcmp(metadata.format, 'rawe2')
-    machinefmt = 'l';
-    metadata.machinefmt = machinefmt;
-    metadata.nr_trials = fread(fid, 1, 'uint64', 0, machinefmt);
-    metadata.nr_groups = fread(fid, 1, 'uint64', 0, machinefmt);
-    metadata.nr_points = fread(fid, 1, 'uint64', 0, machinefmt);
-    s_xfmt = fread(fid, 1, 'uint8', 0, machinefmt);
-    metadata.xfmt = char(fread(fid, s_xfmt, '*uchar', 0, machinefmt)');
-    for i=1:(7-s_xfmt)
-        fread(fid, 1, 'uint8', 0, machinefmt); % ignore padded zeros
-    end
-    metadata.samplingrate = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.fclock = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.tscale = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.toffset = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.vscale = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.voffset = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.rvalue = fread(fid, 1, 'double', 0, machinefmt);
-    metadata.dccoupling = fread(fid, 1, 'int64', 0, machinefmt);
-    metadata.nr_bytes = fread(fid, 1, 'uint64', 0, machinefmt);
-    s_bfmt = fread(fid, 1, 'uint8', 0, machinefmt);
-    metadata.bfmt = char(fread(fid, s_bfmt, '*uchar', 0, machinefmt)');
-    for i=1:(7-s_bfmt)
-        fread(fid, 1, 'uint8', 0, machinefmt); % ignore padded zeros
-    end
-    metadata.address = fread(fid, 1, 'uint64', 0, machinefmt);
-    s_rifmt = fread(fid, 1, 'uint8', 0, machinefmt);
-    metadata.rifmt = char(fread(fid, s_rifmt, '*uchar', 0, machinefmt)');
-    for i=1:(7-s_rifmt)
-        fread(fid, 1, 'uint8', 0, machinefmt); % ignore padded zeros
-    end
-    metadata.ridxoffset = 136;
-    ribs = get_bytes_class(metadata.rifmt);
-    metadata.xoffset = metadata.ridxoffset + ...
-        metadata.nr_bytes*ribs;
-    xbs = get_bytes_class(metadata.xfmt);
-    metadata.boffset = metadata.xoffset + ...
-        metadata.nr_trials*metadata.nr_points*xbs;
-    rbs = get_bytes_class(metadata.bfmt);
-    metadata.roffset = metadata.boffset + ...
-        metadata.nr_trials*metadata.nr_bytes*rbs;
-else
-    fprintf('Unknown format\n');
-end
-
-%% Close file
-fclose(fid);
-"""

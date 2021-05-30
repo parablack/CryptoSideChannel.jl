@@ -9,8 +9,7 @@ function random_diagonal_multivariate_distribution(dimensions::Integer)
     # Use static seed for testing
     rng = MersenneTwister(1234);
 
-    # Generate a random mean in [0, 1]^d
-    mu = rand(rng, dimensions)
+    mu = zeros(dimensions)
     # Our values are uncorrelated, thus we use a diagonal covariance matrix.
     cov = rand(rng, dimensions)
     distribution = MvNormal(mu, cov)
@@ -18,7 +17,7 @@ function random_diagonal_multivariate_distribution(dimensions::Integer)
     distribution
 end
 
-random_template_values(noise, num_values) = SVector{num_values}([rand(noise) for _ in 1:num_values])
+random_template_values(noise, num_values) = SVector{num_values}([rand(noise)*3 for _ in 1:num_values])
 
 """
     random_uncorrelated_templates(dimensions::Integer, max_value::Integer)

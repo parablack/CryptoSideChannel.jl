@@ -2,7 +2,7 @@ using Plots
 include("ParseData.jl")
 
 N = 1
-traces = parse_trace_file("/run/media/simon/D-Platte/Uni/aes/001_trace_int.txt", 1)
+traces = parse_trace_file("~/Documents/Uni/cam/thesis/traces/001_trace_int.txt", 1)
 
 plottrace = traces[:, 1]
 

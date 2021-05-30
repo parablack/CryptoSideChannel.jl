@@ -6,7 +6,7 @@ using Distributions
 using Statistics
 
 test_key = (hex2bytes("42112233445566778899aabbccddeeff"))
-d = Distributions.Normal(0, 1)
+d = Distributions.Normal(0, 4.5)
 sample_function(x) = CPA.sample_power_trace(test_key, x, x -> Base.count_ones(x) + rand(d))
 
 plaintexts = [MVector{16}(rand(UInt8, 16)) for _=1:2^10]
@@ -21,6 +21,9 @@ end
 
 
 power_estimate(plaintext, key_guess_index, key_guess) = Base.count_ones(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
+
+res = CPA.CPA_AES_analyze(sample_function, Base.count_ones)
+
 
 idx = 1
 k = 0x42
@@ -49,3 +52,4 @@ display(plt)
 png(plt, "cpa_trace_prediction_at_sbox_lookup.png")
 print("Rho=")
 display(maximum(abs.(corrcorrect)))
+

@@ -156,7 +156,7 @@ Constructs a logging datatype that logs vectors.
 - `noise_for_value` is a function returning a `MvNormal` distribution with zero mean. This distribution represents the noise. For each value, a random vector is sampled from this noise and added to the respective mean.
 """
 function StochasticLog(val, stream, template_for_value, noise_closure)
-    intermediate_function = x -> template_for_value(x) + rand(noise_closure())
+    intermediate_function = x -> template_for_value(x) + rand(noise_closure(x))
     @assert (isbitstype(typeof(intermediate_function)))
     GenericLog{SingleFunctionLog{intermediate_function}, stream, typeof(val)}(val)
 end
@@ -216,7 +216,7 @@ for op = (:(==), :≠, :<, :<=, :>, :>=, :isequal)
     end)
 end
 
-for op = (:isfinite, :isinf, :isnan)
+for op = (:isfinite, :isinf, :isnan, :isodd, :iseven)
     eval(quote
         function Base.$op(a::GenericLog)
             Base.$op(extractValue(a))
@@ -233,6 +233,7 @@ function Base.show(io::IO, a::GenericLog{A, B, T}) where {A, B, T}
 end
 
 Base.length(::GenericLog) = 1
+
 Base.iterate(x::GenericLog) = (x, nothing)
 Base.iterate(x::GenericLog, _) = nothing
 
@@ -240,10 +241,17 @@ Base.rand(::MersenneTwister, ::Type{GenericLog{U,S,T}}) where {U,S,T} = GenericL
 
 Base.convert(::Type{GenericLog{U, S, Tnew}}, x::GenericLog{U, S, Told}) where {U, S, Tnew, Told} = GenericLog{U, S, Tnew}(convert(Tnew, extractValue(x)))
 
-# Colon operator:
-Base.convert(::Type{GenericLog{U, S, T}}, x::T) where {U,S,T} = GenericLog{U,S,T}(x)
-Base.zero(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(0)
-Base.one(::GenericLog{U, S, T}) where {U,S,T} = GenericLog{U,S,T}(1)
+# Required for colon operator:
+Base.convert(::Type{GenericLog{U, S, Tnew}}, x::Told) where {U, S, Tnew, Told} = GenericLog{U,S,Tnew}(convert(Tnew, x))
+
+Base.sizeof(::Type{GenericLog{U, S, T}}) where {U,S,T} = sizeof(T)
+
+# Type operators
+for fn = (:zero, :one, :typemax, :typemin)
+    eval(quote
+        Base.$(fn)(::Type{GenericLog{U, S, T}}) where {U,S,T} = GenericLog{U,S,T}(($fn)(T))
+    end)
+end
 
 # Base.convert(::Type{GenericLog{U, S, Tnew}}, x::GenericLog{U, S, Told}) where {U, S, Tnew, Told} = GenericLog{U, S, Tnew}(convert(Tnew, extractValue(x)))
 
