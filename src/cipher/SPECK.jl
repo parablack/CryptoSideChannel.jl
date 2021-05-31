@@ -38,7 +38,7 @@ end
 Expand the key according to the SPECK key schedule. The result is a vector of length `rounds`, containing each round key.
 The first round key is the second component of `key`.
     """
-function SPECK_key_expand(key::Tuple{T, T}, rounds)::Vector{T} where T
+function SPECK_key_expand(key::Tuple{T, T}, rounds = 32)::Vector{T} where T
     key_schedule = Vector{T}(undef, rounds)
     for i = 1 : rounds
         key_schedule[i] = key[2]
@@ -73,7 +73,6 @@ julia> SPECK.SPECK_encrypt(plaintext, key)
 ```
     """
 function SPECK_encrypt(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
-
     key_schedule = SPECK_key_expand(key, rounds)
 
     for i::UInt64 = 1:rounds
@@ -82,6 +81,19 @@ function SPECK_encrypt(pt::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,
 
     pt
 end
+
+"""
+    SPECK_encrypt_expanded(pt::Tuple{T, T}, key_schedule::Vector{T}})::Tuple{T,T} where T
+
+Encrypts data with SPECK, given an already expanded key schedule. This schedule can be created with the function `SPECK_key_expand`.
+"""
+function SPECK_encrypt_expanded(pt::Tuple{T, T}, key_schedule::Vector{T})::Tuple{T,T} where T
+    for i::UInt64 = 1:length(key_schedule)
+        pt = R(pt..., key_schedule[i])
+    end
+    pt
+end
+
 
 """
     SPECK_decrypt(ciphertext::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
@@ -109,10 +121,21 @@ julia> SPECK.SPECK_decrypt(ciphertext, key)
 ```
     """
 function SPECK_decrypt(ct::Tuple{T, T}, key::Tuple{T, T}; rounds = 32)::Tuple{T,T} where T
-
     key_schedule = SPECK_key_expand(key, rounds)
 
     for i::UInt64 = rounds:-1:1
+        ct = RR(ct..., key_schedule[i])
+    end
+
+    ct
+end
+"""
+    SPECK_decrypt_expanded(ct::Tuple{T, T}, key_schedule::Vector{T})::Tuple{T,T} where T
+
+Decrypts data with SPECK, given an already expanded key schedule. This schedule can be created with the function `SPECK_key_expand`.
+"""
+function SPECK_decrypt_expanded(ct::Tuple{T, T}, key_schedule::Vector{T})::Tuple{T,T} where T
+    for i::UInt64 = length(key_schedule):-1:1
         ct = RR(ct..., key_schedule[i])
     end
 

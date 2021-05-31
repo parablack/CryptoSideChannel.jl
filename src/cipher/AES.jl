@@ -240,8 +240,24 @@ A `MVector{16,T}` containing the 16-byte long encrypted block.
 function AES_encrypt(pt::MVector{16,T}, k::Vector{T})::MVector{16,T} where T
     @assert length(pt) == 16
     key_schedule = key_expand(k)
+    AES_encrypt_expanded(pt, key_schedule)
+end
+
+"""
+    AES_encrypt_expanded(plaintext::MVector{16,T}, key::Vector{T})::MVector{16,T} where T
+
+Encrypt a block of 16 bytes with AES, given an already expanded key schedule
+
+# Arguments
+- `plaintext` must be a mutable, statically sized Vector of length 16. It contains the text to encrypt.
+- `key_schedule` is a vector containing all round keys for the encryption. This vector can be obtained with the function `key_expand`. Based on the length of this vector, the different versions of AES are dispatched.
+
+# Returns
+A `MVector{16,T}` containing the 16-byte long encrypted block.
+"""
+function AES_encrypt_expanded(pt::MVector{16,T}, key_schedule::Vector{T})::MVector{16,T} where T
     state = (permutedims(reshape(pt, 4, 4), [2,1]))
-    rounds = roundsbykey(k)
+    rounds = (length(key_schedule) ÷ 16) - 1
     add_round_key!(state, key_schedule, 0)
 
     for round = 1:rounds
@@ -276,10 +292,26 @@ A `MVector{16,T}` containing the 16-byte long decrypted block.
 """
 function AES_decrypt(ct::MVector{16,T}, k::Vector{T})::MVector{16,T} where T
     @assert length(ct) == 16
-
     key_schedule = key_expand(k)
+    AES_decrypt_expanded(ct, key_schedule)
+end
+
+"""
+    AES_decrypt_expanded(ciphertext::MVector{16,T}, key::Vector{T})::MVector{16,T} where T
+
+Decrypt a block of 16 bytes with AES, given an already expanded key schedule.
+
+# Arguments
+- `plaintext` must be a mutable, statically sized Vector of length 16. It contains the text to decrypt.
+- `key_schedule` is a vector containing all round keys for the decryption. This vector can be obtained with the function `key_expand`. Based on the length of this vector, the different versions of AES are dispatched.
+
+# Returns
+A `MVector{16,T}` containing the 16-byte long decrypted block.
+"""
+function AES_decrypt_expanded(ct::MVector{16,T}, key_schedule::Vector{T})::MVector{16,T} where T
+    @assert length(ct) == 16
+    rounds = (length(key_schedule) ÷ 16) - 1
     state = permutedims(reshape(ct, 4, 4), [2,1])
-    rounds = roundsbykey(k)
     add_round_key!(state, key_schedule, rounds)
 
     for round = rounds-1:-1:0

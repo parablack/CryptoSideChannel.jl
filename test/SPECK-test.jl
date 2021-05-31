@@ -26,6 +26,13 @@ function test_lifted_en_decryption(key, pt, ct, lift, reduce)
     pt_rec = map(reduce, pt_rec)
     # Assert
     @test pt_rec == pt
+
+    # En-/decrypt with pre expanded key schedule
+    key_expanded = SPECK.SPECK_key_expand(key_lift)
+    ct_rec = SPECK.SPECK_encrypt_expanded(pt_lift, key_expanded)
+    pt_rec = SPECK.SPECK_decrypt_expanded(ct_lift, key_expanded)
+    @test map(reduce, ct_rec) == ct
+    @test map(reduce, pt_rec) == pt
 end
 
 const functions =

@@ -68,13 +68,8 @@ Creates a logging datatype that logs the [Hamming weight](https://en.wikipedia.o
 - `stream`: A **closure** returning the array that should be logged to. Note that `stream` must be a `bits` type.
 
 ## Example
-```@meta
-DocTestSetup = quote
-    using CryptoSideChannel
-end
-```
 
-```jldoctest
+```jldoctest; setup = :(using CryptoSideChannel)
 julia> trace = [];
 
 julia> closure = () -> trace;
@@ -120,12 +115,8 @@ Creates a logging datatype that logs the full underlying value.
 - `stream`: A **closure** returning the array that should be logged to. Note that `stream` must be a `bits` type.
 
 ## Example
-```@meta
-DocTestSetup = quote
-    using CryptoSideChannel
-end
-```
-```jldoctest
+
+```jldoctest; setup = :(using CryptoSideChannel)
 julia> trace = [];
 
 julia> closure = () -> trace;
@@ -161,7 +152,7 @@ function StochasticLog(val, stream, template_for_value, noise_closure)
     GenericLog{SingleFunctionLog{intermediate_function}, stream, typeof(val)}(val)
 end
 
-for op = (:-, :~, :abs, :abs2, :sign)
+for op = (:-, :~, :abs, :abs2, :sign, :widen, :identity)
     eval(quote
         function Base.$op(a::GenericLog{U,S}) where {U,S}
             res = Base.$op(extractValue(a))

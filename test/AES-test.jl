@@ -3,6 +3,11 @@ using CryptoSideChannel, Test, StaticArrays
 function test_en_decrypt_uint8(pt, ct, k)
     @test AES.AES_encrypt_hex(pt, k) == ct
     @test AES.AES_decrypt_hex(ct, k) == pt
+
+    key_expanded = AES.key_expand(hex2bytes(k))
+    @test AES.AES_encrypt_expanded(MVector{16}(hex2bytes(pt)), key_expanded) == hex2bytes(ct)
+    @test AES.AES_decrypt_expanded(MVector{16}(hex2bytes(ct)), key_expanded) == hex2bytes(pt)
+
 end
 
 function test_en_decrypt_log(pt, ct, k)

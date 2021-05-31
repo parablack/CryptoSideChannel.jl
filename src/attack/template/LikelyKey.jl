@@ -1,10 +1,22 @@
 """
-This struct merges different key bytes for which probabilities are known to a whole key, by iterating first over keys that are more likely.
-
-Keys are stored as lists of lists, where the outer lists represent the respective key byte (i.e. the first list represents the first key byte). The inner lists must be sorted according to the probability of a specific byte occuring.
     struct LikelyKey
         keylist::Vector{Vector{Integer}}
     end
+
+This struct merges different key bytes for which probabilities are known to a whole key, by iterating first over keys that are more likely.
+
+Keys are stored as lists of lists, where the outer lists represent the respective key byte (i.e. the first list represents the first key byte). The inner lists must be sorted according to the probability of a specific byte occuring.
+
+## Example
+
+```julia-repl
+julia> k = LikelyKey([[1, 2, 3], [4, 5, 6]])
+julia> for x = k
+         print(x); print(" ")
+       end
+[1, 4] [2, 4] [1, 5] [3, 4] [2, 5] [1, 6] [3, 5] [2, 6] [3, 6]
+```
+
 """
 struct LikelyKey
     keylist::Vector{Vector{Integer}}
