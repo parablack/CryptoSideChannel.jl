@@ -211,12 +211,12 @@ function AESInvCipher(inBytes, w, Nr::Int)
 end
 
 # Returns one-based column indices of the given column (one-based).
-function columnIndices(column)
+function columnIndices(column::Int)
 	return column:Nb:Nb*Nb
 end
 
 # Returns row indices of the given row (one-based).
-function rowIndices(row)
+function rowIndices(row::Int)
 	return ((row - 1) * Nb + 1):(row * Nb)
 end
 
