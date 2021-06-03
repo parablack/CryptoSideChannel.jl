@@ -48,11 +48,6 @@ HammingWeightLog(val, stream)  =
     GenericLog{SingleFunctionLog{Base.count_ones},stream,typeof(val)}(val)
 ```
 
-## Logging to an array
-
-TODO why closures
-TODO how to provide array
-TODO array must be in global scope.
 
 
 ## [Defining new methods for `GenericLog` types](@id extending_log_funs)

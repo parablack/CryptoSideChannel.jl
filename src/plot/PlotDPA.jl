@@ -12,7 +12,6 @@ diffWrong = DPA.generate_difference_trace(traces, DPA.select, 0x41, 1)
 plt = plot([diff], label="Difference of Means", xlabel="Time", ylabel="Relative power consumption")
 png(plt, "dpa_hamming_dom.png")
 
-#  println(argmax(diff))
 #  plt = plot(eachindex(traces[1][2]), traces[1][2], label="Sample trace", xlabel="Time", ylabel="Relative power consumption", ylims=(-20, 20))
 #  vline!([argmax(diff)], label="First S-Box lookup")
 #  png(plt, "dpa_trace_and_sbox_lookup_time.png")
@@ -44,5 +43,4 @@ end
   png(plt, "dpa_grouped_values_at_sbox_lookup.png")
 
 
-# print(diff)
 #  recovered_key = DPA_AES_analyze(sample_function)

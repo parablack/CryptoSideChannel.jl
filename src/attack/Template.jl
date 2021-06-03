@@ -35,11 +35,9 @@ function template_core_attack(profiled_vectors::AbstractMatrix, inputs::Abstract
     for value = unique(inputs)
         idx = findall(x -> x == value, profiled_vectors_data)
         mean = vec(Statistics.mean(profiled_vectors[:,idx], dims=2))
-        #display(value)
         mv_distribution = MvNormal(mean, cov)
-        #display(mv_distribution)
-        #display(logpdf(mv_distribution, attack_vectors))
-        # Sum of logarithms is proportional to the product of probabilites. Some factors are lost. Hence, only a likelyhood is returned.
+
+        # Sum of logarithms is proportional to the product of probabilites. Some factors are lost. Hence, only a likelihood is returned.
         prob = sum(logpdf(mv_distribution, attack_vectors))
 
         push!(keyGuesses, (prob, value))

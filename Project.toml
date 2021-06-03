@@ -1,6 +1,6 @@
 name = "CryptoSideChannel"
 uuid = "5125bf15-d1e5-4048-9f9a-1009b1b43be4"
-authors = ["Simon Schwarz"]
+authors = ["REDACTED"]
 version = "0.1.0"
 
 [deps]

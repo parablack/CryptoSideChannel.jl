@@ -186,7 +186,6 @@ for type = (:(AbstractArray{T}), :(Tuple{Vararg{T}}))
     end)
 end
 
-# Can this be done any better?
 Base.hash(a::Masked) = 0
 
 

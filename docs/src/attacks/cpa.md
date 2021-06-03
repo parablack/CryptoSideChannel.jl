@@ -1,11 +1,7 @@
 ```@meta
 CurrentModule = CryptoSideChannel.CPA
 ```
-
-## [Power estimation function](@id power_estimation_function)
-
-Intros concept power estimation function. Some examples? TODO
-
+# CPA
 
 ## CPA attacks against AES
 
@@ -22,7 +18,6 @@ Attacks against SPECK are a bit more difficult, since both key parts (the left 6
 CPA_SPECK_analyze
 CPA_SPECK_analyze_traces
 ```
-
 
 
 ## Real-world attacks against AES

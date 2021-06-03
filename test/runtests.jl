@@ -28,7 +28,7 @@ end
 include("aes-faf0/test.jl")
 end
 
-# Expensive tests: Comment out if testing is wished.
+# Expensive tests: Comment out if testing is thorough wished.
 #@safetestset "DPA unit tests" begin
 #include("DPA-test.jl")
 #end

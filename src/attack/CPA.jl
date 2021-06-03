@@ -98,9 +98,6 @@ function CPA_AES_analyze_manual(plaintexts::Vector, traces::Matrix, power_estima
     # Hypothesis of power consumption under specific guess
     hypo = zeros(length(plaintexts))
 
-    #aespower_estimate(plaintext, key_guess_index, key_guess) =
-    #    power_estimate(AES.c_sbox[(plaintext[key_guess_index] ⊻ key_guess)+1])
-
     completeKey = []
 
     for idx = 1:16
