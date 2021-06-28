@@ -1,0 +1,315 @@
+\def\pathToRoot{./}
+%\def\printVersion{}
+
+\input{\pathToRoot headers/lecture}
+
+% should we annotate types in function signatures?
+% look julia manual: "performance tips" / styleguide.
+% do not overannotate, because youre removing flexibility.
+% only needed when controlling dipatch
+% for documentation: let annotations stay in documentation, not in the actual source code.
+% would it be useful to have "type comments?" --> only for docu, not for dispatch
+
+
+\usetikzlibrary{arrows,shadows}
+\usepackage{pgf-umlsd}
+\usepackage{multirow}
+\usepackage{pdfpages}
+\usepackage{pgffor}
+\usepackage{minted}
+\usepackage{algorithm} %ctan.org\pkg\algorithms
+\usepackage{algpseudocode}
+\usepackage[absolute]{textpos}
+
+%\usepackage{pdfpcnotes}
+
+\DeclareMathOperator{\HammingWeight}{HammingWeight}
+
+\title{Modelling cryptographic side-channels \\with Julia types}
+\date{June 29, 2021}
+
+\begin{document}
+
+\maketitle
+
+\section*{Side-channels}
+
+\begin{frame}[fragile]{What is a side-channel?}
+    \vspace{-1em}
+    \begin{columns}
+        \begin{column}{0.45\textwidth}
+            \begin{center}
+                Cryptographic algorithm executed on hardware \\
+                \vspace{0.5em}
+                \includegraphics[width=0.55\textwidth]{res/cardopen.png}
+            \end{center}
+        \end{column}
+        \begin{column}{0.1\textwidth}
+            \centering
+            {\LARGE +}
+        \end{column}
+        \begin{column}{0.45\textwidth}
+            \centering
+            Additional information by measuring \highlight{side-channels}:
+            \begin{itemize}
+                \item Power consumption
+                \item Timing information
+                \item \ldots
+            \end{itemize}
+        \end{column}
+    \end{columns}
+
+    \begin{center}
+        \includegraphics[width=0.7\linewidth]{res/osci1.png}
+    \end{center}
+
+\end{frame}
+
+%\begin{frame}[fragile]{Side-channel attacks: Alternative}
+%   \includegraphics[width=\textwidth]{res/workflow.png}
+%\end{frame}
+
+\section*{Our Framework}
+
+\begin{frame}[fragile]{Our framework in Julia}
+    Use \highlight{custom types}\only<1>{:} \only<2->{that log all processed values:}
+    \vspace{1em}
+    \begin{minted}[]{julia}
+struct LogInt
+    value::Int
+end
+    \end{minted}
+    \pause
+\begin{minted}[]{julia}
+function Base.:(+)(a::LogInt, b::LogInt)
+    result = a.value + b.value
+    hamming_weight = count_ones(result)
+    println("Recorded $(hamming_weight)")
+    return LogInt(result)
+end
+\end{minted}
+\vspace{1em}
+\pause
+\begin{minted}[]{julia-repl}
+julia> a = LogInt(31) + LogInt(2)
+Recorded 2
+LogInt(33)
+\end{minted}
+\vspace{-2em}
+\hspace{10em}
+{\scriptsize $(33)_{10} = (100001)_2$}
+\end{frame}
+
+\begin{frame}[fragile]{Collecting side-channel data}
+
+    \begin{minted}[fontsize=\small]{julia-repl}
+julia> AES_encrypt([LogInt(42), LogInt(11), ...], [...])
+Recorded 2
+Recorded 5
+Recorded 0
+Recorded 5
+Recorded 3
+Recorded 6
+Recorded 7
+[~2000 more lines]
+        \end{minted}
+\vspace{1em}
+Should be similar to an oscilloscope recording
+\end{frame}
+
+
+\begin{frame}[fragile]{\texttt{LogInt <: Integer}?}
+    Should \texttt{LogInt} be a subtype of \texttt{Integer}? \\
+
+    \textbf{Pros}:
+            \begin{itemize}
+                \item Code that uses type restrictions to \texttt{Integer} is fine
+\begin{minted}[fontsize=\footnotesize]{julia}
+AES_encrypt(text::Vector{Integer}, key::Vector{Integer})
+\end{minted}
+                \item Natural relationship?
+            \end{itemize}
+    \vspace{0.5em}
+
+    \textbf{Cons}:
+            \begin{itemize}
+                \item Can introduce ambiguities for multiple dispatch! \\
+                    \begin{minted}{julia}
+Base.getindex(v::AbstractArray, i::Integer)
+                    \end{minted}
+                \item Our code can also behave as \texttt{Signed}, \texttt{Unsigned}, \texttt{Int64}, \texttt{Bool} % not exclusively integer
+            \end{itemize}
+
+\end{frame}
+
+
+%\begin{frame}[fragile]{Providing custom methods}
+%\begin{columns}
+%    \begin{column}{0.45\textwidth}
+%        \begin{minted}[fontsize=\tiny]{julia}
+%function Base.:(+)(a::LogInt, b::LogInt)
+%    result = a.value + b.value
+%    hamming_weight = count_ones(result)
+%    println("Recorded $(hamming_weight)")
+%    return LogInt(result)
+%end
+%        \end{minted}
+%\begin{minted}[fontsize=\tiny]{julia}
+%function Base.:(xor)(a::LogInt, b::LogInt)
+%    result = xor(a.value, b.value)
+%    hamming_weight = count_ones(result)
+%    println("Recorded $(hamming_weight)")
+%    return LogInt(result)
+%end
+%    \end{minted}
+%    \end{column}
+%
+%
+%    \begin{column}{0.45\textwidth}
+%        \begin{minted}[fontsize=\tiny]{julia}
+%function Base.getindex(a::Array, b::LogInt)
+%    result = a[b.value]
+%    hamming_weight = count_ones(result)
+%    println("Recorded $(hamming_weight)")
+%    return LogInt(result)
+%end
+%        \end{minted}
+%\begin{minted}[fontsize=\tiny]{julia}
+%function Base.:(&)(a::LogInt, b::LogInt)
+%    result = a.value & b.value
+%    hamming_weight = count_ones(result)
+%    println("Recorded $(hamming_weight)")
+%    return LogInt(result)
+%end
+%    \end{minted}
+%    \end{column}
+%\end{columns}
+%%\begin{minted}[]{julia}
+%%\end{minted}
+%\vspace{-1.5em}
+%$$\underbrace{\phantom{AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA}}$$
+%\vspace{-2.5em}
+%
+%\begin{center}
+%    Subsume with \highlight{metaprogramming}\visible<2->{:}
+%\end{center}
+%\pause
+%\begin{minted}[fontsize=\small]{julia}
+%for op = (:+, :-, :*, :xor, :&, :|)
+%eval(
+%    function Base.$op(a::LogInt, b::LogInt)
+%        result = Base.$op(a.value, b.value)
+%        println("Recorded $(count_ones(result))")
+%        return LogInt(result)
+%    end)
+%\end{minted}
+%\vspace{-1.5em}
+%\hspace{20em}
+%{\tiny \textcolor{red}{Warning: simplified syntax}}
+%\end{frame}
+
+\begin{frame}[fragile]{Masking}
+
+Store a value $v$ in two shares with
+\begin{itemize}
+    \item $v = \mathtt{v.val} \oplus \mathtt{v.mask}$ \hspace{1em} ({Boolean masking})
+    \item $v = \mathtt{v.val} + \mathtt{v.mask}$ \hspace{1em} ({Arithmetic masking})
+\end{itemize}
+
+\vspace{1em}
+
+\begin{minted}[fontsize=\footnotesize]{julia}
+@enum MaskType Boolean=1 Arithmetic=2
+
+struct Masked{M, T1, T2}
+    val::T1
+    mask::T2
+end
+
+function Base.(xor)(a::Masked{Boolean}, b::Masked{Boolean})
+    Masked{Boolean}(xor(a.val, b.val), xor(a.mask, b.mask))
+end
+
+function Base.(+)(a::Masked{Boolean}, b::Masked{Boolean})
+    Masked{Boolean}(a.val + b.val, a.mask + b.mask)
+end
+
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Masking: Conversion}
+
+\begin{minted}[fontsize=\footnotesize]{julia}
+convert(::Type{Masked{Boolean}}, a::Masked{Arithmetic})
+    = goubin_a2b(a)
+convert(::Type{Masked{Arithmetic}}, a::Masked{Boolean})
+    = goubin_b2a(a)
+\end{minted}
+
+\begin{thebibliography}{10}
+    \beamertemplatebookbibitems
+    \bibitem{MaskingConversionGoubin}
+    Louis Goubin
+    \newblock {A sound method for switching between Boolean and Arithmetic masking}.
+\end{thebibliography}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Collecting masked side-channel data}
+
+    \begin{minted}[fontsize=\small]{julia-repl}
+julia> AES_encrypt([Masked(LogInt(42)), ...], [...])
+Recorded 4
+Recorded 1
+Recorded 6
+Recorded 2
+Recorded 3
+Recorded 6
+Recorded 0
+[~30000 more lines]
+        \end{minted}
+\vspace{1em}
+Similar to an oscilloscope recording a \textbf{masked version} of our cipher.
+\end{frame}
+
+%\begin{frame}[fragile]{Our framework: Summary}
+%    \highlight{Ciphers}
+%    \begin{itemize}
+%        \item AES
+%        \item SPECK
+%    \end{itemize}
+%
+%    \highlight{Custom types}
+%    \begin{itemize}
+%        \item Logging side-channel values
+%        \item Countermeasures: Masking
+%    \end{itemize}
+%
+%    \highlight{Attacks} {\scriptsize (recover secret key from side-channel data)}
+%    \begin{itemize}
+%        \item Differential Power Analysis {\scriptsize (Kocher 1999)}
+%        \item Correlation Power Analysis {\scriptsize (Brier et al. 2004)}
+%        \item Template Attacks {\scriptsize (Chari et al. 2002)}
+%    \end{itemize}
+%
+%\end{frame}
+
+
+\section*{Try it yourself}
+\begin{frame}[fragile]{Try it out}
+
+    \todo{some very brief summary? timing dependent}
+    \begin{center}
+        \includegraphics[width=0.25\linewidth]{res/qr.png} \\
+        \vspace{-1em}
+        {\footnotesize\url{https://github.com/parablack/CryptoSideChannel.jl}}
+    \end{center}
+
+%    \vfill
+%    Any open questions left?
+
+\end{frame}
+
+\end{document}
+
