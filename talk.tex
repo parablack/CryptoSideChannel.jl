@@ -69,9 +69,9 @@
 %   \includegraphics[width=\textwidth]{res/workflow.png}
 %\end{frame}
 
-\section*{Our Framework}
+\section*{Logging side-channels}
 
-\begin{frame}[fragile]{Our framework in Julia}
+\begin{frame}[fragile]{Collecting side-channel data with Julia}
     Use \highlight{custom types}\only<1>{:} \only<2->{that log all processed values:}
     \vspace{1em}
     \begin{minted}[]{julia}
@@ -134,10 +134,13 @@ AES_encrypt(text::Vector{Integer}, key::Vector{Integer})
     \textbf{Cons}:
             \begin{itemize}
                 \item Can introduce ambiguities for multiple dispatch! \\
-                    \begin{minted}{julia}
-Base.getindex(v::AbstractArray, i::Integer)
-                    \end{minted}
-                \item Our code can also behave as \texttt{Signed}, \texttt{Unsigned}, \texttt{Int64}, \texttt{Bool} % not exclusively integer
+                    \begin{minted}[fontsize=\footnotesize]{julia}
+getindex(v::AbstractArray, i::Integer)
+# getindex(::Array, ::LogInt) is ambiguous. Candidates:
+getindex(v::Array, i::Integer) # from Base
+getindex(v::AbstractArray, i::LogInt) # our definition
+                \end{minted}
+                \item \texttt{LogInt} can also behave as \texttt{Signed}, \texttt{Unsigned}, \texttt{Int64}, \texttt{Bool} % not exclusively integer
             \end{itemize}
 
 \end{frame}
@@ -207,6 +210,7 @@ Base.getindex(v::AbstractArray, i::Integer)
 %\hspace{20em}
 %{\tiny \textcolor{red}{Warning: simplified syntax}}
 %\end{frame}
+\section*{Protecting side-channels}
 
 \begin{frame}[fragile]{Masking}
 
@@ -230,8 +234,8 @@ function Base.(xor)(a::Masked{Boolean}, b::Masked{Boolean})
     Masked{Boolean}(xor(a.val, b.val), xor(a.mask, b.mask))
 end
 
-function Base.(+)(a::Masked{Boolean}, b::Masked{Boolean})
-    Masked{Boolean}(a.val + b.val, a.mask + b.mask)
+function Base.(+)(a::Masked{Arithmetic}, b::Masked{Arithmetic})
+    Masked{Arithmetic}(a.val + b.val, a.mask + b.mask)
 end
 
 \end{minted}
@@ -245,7 +249,7 @@ convert(::Type{Masked{Boolean}}, a::Masked{Arithmetic})
 convert(::Type{Masked{Arithmetic}}, a::Masked{Boolean})
     = goubin_b2a(a)
 \end{minted}
-
+\vspace{2em}
 \begin{thebibliography}{10}
     \beamertemplatebookbibitems
     \bibitem{MaskingConversionGoubin}
@@ -273,43 +277,47 @@ Recorded 0
 Similar to an oscilloscope recording a \textbf{masked version} of our cipher.
 \end{frame}
 
-%\begin{frame}[fragile]{Our framework: Summary}
-%    \highlight{Ciphers}
-%    \begin{itemize}
-%        \item AES
-%        \item SPECK
-%    \end{itemize}
-%
-%    \highlight{Custom types}
-%    \begin{itemize}
-%        \item Logging side-channel values
-%        \item Countermeasures: Masking
-%    \end{itemize}
-%
-%    \highlight{Attacks} {\scriptsize (recover secret key from side-channel data)}
-%    \begin{itemize}
-%        \item Differential Power Analysis {\scriptsize (Kocher 1999)}
-%        \item Correlation Power Analysis {\scriptsize (Brier et al. 2004)}
-%        \item Template Attacks {\scriptsize (Chari et al. 2002)}
-%    \end{itemize}
-%
-%\end{frame}
+\section*{Our framework}
+\begin{frame}[fragile]{\texttt{CryptoSideChannel.jl}: Summary}
+    \highlight{Ciphers}
+    \begin{itemize}
+        \item Advanced Encryption Standard (module \texttt{AES})
+        \item SPECK (module \texttt{SPECK})
+    \end{itemize}
 
+    \highlight{Custom types}
+    \begin{itemize}
+        \item Logging side-channel values: \texttt{Logging.GenericLog}
+        \item Masking: \texttt{Masking.Masked}
+    \end{itemize}
 
-\section*{Try it yourself}
-\begin{frame}[fragile]{Try it out}
-
-    \todo{some very brief summary? timing dependent}
+    \highlight{Attacks} {\scriptsize (recover secret key from side-channel data)}
+    \begin{itemize}
+        \item Differential Power Analysis {\scriptsize (Kocher 1999)}: \texttt{DPA}
+        \item Correlation Power Analysis {\scriptsize (Brier et al. 2004)}: \texttt{CPA}
+        \item Template Attacks {\scriptsize (Chari et al. 2002)}: \texttt{TemplateAttacks}
+        \item Integration with \url{Jlsca} {\scriptsize (\url{https://github.com/Riscure/Jlsca/})}
+    \end{itemize}
     \begin{center}
-        \includegraphics[width=0.25\linewidth]{res/qr.png} \\
-        \vspace{-1em}
-        {\footnotesize\url{https://github.com/parablack/CryptoSideChannel.jl}}
+        \highlight[secondary]{\url{https://github.com/parablack/CryptoSideChannel.jl}}
     \end{center}
 
+\end{frame}
+
+
+%\section*{Try it yourself}
+%\begin{frame}[fragile]{Try it out}
+%
+%    \todo{some very brief summary? timing dependent}
+%    \begin{center}
+%        \includegraphics[width=0.25\linewidth]{res/qr.png} \\
+%        \vspace{-1em}
+%        {\footnotesize\url{https://github.com/parablack/CryptoSideChannel.jl}}
+%    \end{center}
+%
 %    \vfill
 %    Any open questions left?
-
-\end{frame}
+%\end{frame}
 
 \end{document}
 
